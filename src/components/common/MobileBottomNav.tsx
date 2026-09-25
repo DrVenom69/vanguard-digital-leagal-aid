@@ -1,5 +1,6 @@
 import React from 'react';
 import { UserRole } from '../../types';
+import { useLanguage } from '../../context/LanguageContext';
 import { 
   Building2, 
   Smartphone, 
@@ -19,6 +20,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   currentRole,
   onRoleChange,
 }) => {
+  const { language } = useLanguage();
   const cases = getStoredCases();
   const urgentCount = cases.filter(c => c.priority === 'urgent').length;
   const offlineQueueCount = getOfflineQueue().length;
@@ -34,7 +36,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     {
       role: 'dlao',
       label: 'DLAO',
-      sublabel: 'ট্রায়াজ',
+      sublabel: language === 'bn' ? 'ট্রায়াজ' : 'Triage',
       icon: Building2,
       badge: urgentCount > 0 ? `${urgentCount}` : null,
       badgeColor: 'bg-red-500 text-white',
@@ -42,29 +44,29 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
     {
       role: 'udc',
       label: 'UDC',
-      sublabel: 'ইনটেক',
+      sublabel: language === 'bn' ? 'ইনটেক' : 'Intake',
       icon: Smartphone,
       badge: offlineQueueCount > 0 ? `${offlineQueueCount}` : null,
       badgeColor: 'bg-amber-500 text-slate-950 font-bold',
     },
     {
       role: 'citizen',
-      label: 'নাগরিক',
-      sublabel: 'মালেক',
+      label: language === 'bn' ? 'নাগরিক' : 'Citizen',
+      sublabel: language === 'bn' ? 'ট্র্যাকিং' : 'Track',
       icon: UserCheck,
       badge: null,
     },
     {
       role: 'mediator',
       label: 'ADR',
-      sublabel: 'মধ্যস্থতা',
+      sublabel: language === 'bn' ? 'মধ্যস্থতা' : 'Mediation',
       icon: Scale,
       badge: null,
     },
     {
       role: 'lawyer',
-      label: 'আইনজীবী',
-      sublabel: 'প্যানেল',
+      label: language === 'bn' ? 'আইনজীবী' : 'Lawyer',
+      sublabel: language === 'bn' ? 'প্যানেল' : 'Panel',
       icon: Briefcase,
       badge: null,
     },

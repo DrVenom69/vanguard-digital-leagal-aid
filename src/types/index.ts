@@ -1,5 +1,7 @@
 export type UserRole = 'dlao' | 'udc' | 'citizen' | 'mediator' | 'lawyer';
 
+export type Language = 'bn' | 'en';
+
 export type PriorityLevel = 'urgent' | 'medium' | 'routine';
 
 export type IntakeChannel = 'udc' | 'hotline' | 'web' | 'court_cell' | 'police_referral';

@@ -1,5 +1,6 @@
 import React from 'react';
 import { LegalCase } from '../../types';
+import { useLanguage } from '../../context/LanguageContext';
 import { 
   AlertTriangle, 
   Clock, 
@@ -21,6 +22,51 @@ interface TriageCardProps {
 }
 
 export const TriageCard: React.FC<TriageCardProps> = ({ legalCase, onSelect }) => {
+  const { language } = useLanguage();
+
+  // Helper to extract pure Bengali or pure English from mixed "English (Bangla)" strings
+  const cleanSummary = (text: string) => {
+    if (text.includes('(')) {
+      if (language === 'bn') {
+        const bnMatch = text.match(/\(([^)]+)\)/);
+        return bnMatch ? bnMatch[1].trim() : text;
+      } else {
+        return text.split('(')[0].trim();
+      }
+    }
+    return text;
+  };
+
+  // Helper for pure channel labels
+  const getChannelLabel = () => {
+    switch (legalCase.channel) {
+      case 'udc':
+        return language === 'bn' ? 'ইউডিসি ইনটেক' : 'UDC Center';
+      case 'hotline':
+        return language === 'bn' ? 'হটলাইন ১৬৪৩০' : 'Hotline 16430';
+      case 'web':
+        return language === 'bn' ? 'অনলাইন পোর্টাল' : 'Web Portal';
+      case 'court_cell':
+        return language === 'bn' ? 'কোর্ট সেল' : 'Court Cell';
+      case 'police_referral':
+        return language === 'bn' ? 'থানা রেফারেল' : 'Police Referral';
+      default:
+        return language === 'bn' ? 'লিগ্যাল এইড অফিস' : 'Legal Aid Office';
+    }
+  };
+
+  // Helper for clean time ago without mixed parentheses
+  const getTimeAgo = () => {
+    const raw = legalCase.timeAgo.replace(/\s*\([^)]*\)/g, '').trim();
+    if (language === 'bn') return raw;
+    if (raw.includes('ঘণ্টা')) return '2 hours ago';
+    if (raw.includes('মিনিট')) return '30 mins ago';
+    if (raw.includes('দিন')) return '14 days ago';
+    if (raw.includes('মাস')) return '1 month ago';
+    if (raw.includes('এইমাত্র')) return 'Just now';
+    return raw;
+  };
+
   // Point 1: Visual Priority Badge - Softer rounded pills
   const renderPriorityBadge = () => {
     switch (legalCase.priority) {
@@ -28,20 +74,20 @@ export const TriageCard: React.FC<TriageCardProps> = ({ legalCase, onSelect }) =
         return (
           <div
             className="inline-flex items-center gap-1.5 bg-red-50 text-red-700 px-3 py-1 rounded-full text-xs font-bold"
-            aria-label="অগ্রাধিকার: অতি জরুরি"
+            aria-label={language === 'bn' ? 'অগ্রাধিকার: অতি জরুরি' : 'Priority: Urgent'}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-ping inline-block" />
-            <span>জরুরি (URGENT)</span>
+            <span>{language === 'bn' ? 'জরুরি' : 'Urgent'}</span>
           </div>
         );
       case 'medium':
         return (
           <div
             className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-xs font-bold"
-            aria-label="অগ্রাধিকার: মাঝারি"
+            aria-label={language === 'bn' ? 'অগ্রাধিকার: মাঝারি' : 'Priority: Medium'}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block" />
-            <span>মাঝারি (MEDIUM)</span>
+            <span>{language === 'bn' ? 'মাঝারি' : 'Medium'}</span>
           </div>
         );
       case 'routine':
@@ -49,10 +95,10 @@ export const TriageCard: React.FC<TriageCardProps> = ({ legalCase, onSelect }) =
         return (
           <div
             className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-xs font-bold"
-            aria-label="অগ্রাধিকার: সাধারণ"
+            aria-label={language === 'bn' ? 'অগ্রাধিকার: সাধারণ' : 'Priority: Routine'}
           >
             <span className="w-1.5 h-1.5 rounded-full bg-slate-400 inline-block" />
-            <span>সাধারণ (ROUTINE)</span>
+            <span>{language === 'bn' ? 'সাধারণ' : 'Routine'}</span>
           </div>
         );
     }
@@ -72,7 +118,7 @@ export const TriageCard: React.FC<TriageCardProps> = ({ legalCase, onSelect }) =
     }
   };
 
-  // Point 5: Verification Status Badge - Soft pills
+  // Point 5: Verification Status Badge - Soft pills without mixed brackets
   const renderVerificationBadge = () => {
     const isSubjectVerified = legalCase.provenance.subjectVerification === 'verified';
 
@@ -80,10 +126,10 @@ export const TriageCard: React.FC<TriageCardProps> = ({ legalCase, onSelect }) =
       return (
         <span
           className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700"
-          title="প্রতিনিধি বায়োমেট্রিক/সিম ভেরিফাইড কিন্তু ভুক্তভোগী তদন্তাধীন"
+          title={language === 'bn' ? 'প্রতিনিধি বায়োমেট্রিক সিম ভেরিফাইড' : 'Proxy SIM / Biometric Verified'}
         >
           <ShieldCheck className="w-3 h-3 text-emerald-600" />
-          <span>প্রক্সি ভেরিফাইড</span>
+          <span>{language === 'bn' ? 'প্রক্সি যাচাইকৃত' : 'Proxy Verified'}</span>
         </span>
       );
     }
@@ -92,7 +138,7 @@ export const TriageCard: React.FC<TriageCardProps> = ({ legalCase, onSelect }) =
       return (
         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
           <ShieldCheck className="w-3 h-3 text-emerald-600" />
-          <span>NID যাচাইকৃত</span>
+          <span>{language === 'bn' ? 'এনআইডি যাচাইকৃত' : 'NID Verified'}</span>
         </span>
       );
     }
@@ -100,7 +146,7 @@ export const TriageCard: React.FC<TriageCardProps> = ({ legalCase, onSelect }) =
     return (
       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-500">
         <HelpCircle className="w-3 h-3 text-slate-400" />
-        <span>অযাচাইকৃত</span>
+        <span>{language === 'bn' ? 'অযাচাইকৃত' : 'Unverified'}</span>
       </span>
     );
   };
@@ -117,7 +163,7 @@ export const TriageCard: React.FC<TriageCardProps> = ({ legalCase, onSelect }) =
         }
       }}
       className="group relative bg-white rounded-3xl p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all border border-slate-100/50 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20"
-      aria-label={`মামলা বিস্তারিত দেখুন: ${legalCase.provenance.subjectName}, অগ্রাধিকার: ${legalCase.priority}`}
+      aria-label={`${language === 'bn' ? 'মামলা বিস্তারিত দেখুন' : 'View case details'}: ${legalCase.provenance.subjectName}, ${language === 'bn' ? 'অগ্রাধিকার' : 'Priority'}: ${legalCase.priority}`}
     >
       {/* Top row: Status Badges (Pills) + Tracking Number in Top Right */}
       <div className="flex items-center justify-between gap-3">
@@ -129,7 +175,7 @@ export const TriageCard: React.FC<TriageCardProps> = ({ legalCase, onSelect }) =
           {legalCase.isOverdue && (
             <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-xs font-bold">
               <Clock className="w-3 h-3 text-amber-600" />
-              <span>মেয়াদোত্তীর্ণ</span>
+              <span>{language === 'bn' ? 'মেয়াদোত্তীর্ণ' : 'Overdue'}</span>
             </span>
           )}
 
@@ -137,21 +183,21 @@ export const TriageCard: React.FC<TriageCardProps> = ({ legalCase, onSelect }) =
           {legalCase.hasChildInDanger && (
             <span className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-xs font-bold">
               <Baby className="w-3 h-3 text-purple-600" />
-              <span>শিশু ঝুঁকিতে</span>
+              <span>{language === 'bn' ? 'শিশু ঝুঁকিতে' : 'Child at Risk'}</span>
             </span>
           )}
 
           {/* Sensitive Pill */}
           {legalCase.isSensitive && (
             <span className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 px-3 py-1 rounded-full text-xs font-bold">
-              <span>সংবেদনশীল (Role B6)</span>
+              <span>{language === 'bn' ? 'সংবেদনশীল কেস' : 'Sensitive Case'}</span>
             </span>
           )}
 
           {/* Ping-Pong Bounce Pill */}
           {legalCase.pingPongBouncesCount && legalCase.pingPongBouncesCount >= 2 && (
             <span className="inline-flex items-center gap-1 bg-rose-50 text-rose-700 px-3 py-1 rounded-full text-xs font-bold">
-              <span>পিং-পং বাউন্স (T2)</span>
+              <span>{language === 'bn' ? 'এখতিয়ার সংঘাত' : 'Referral Conflict'}</span>
             </span>
           )}
         </div>
@@ -182,11 +228,11 @@ export const TriageCard: React.FC<TriageCardProps> = ({ legalCase, onSelect }) =
             <Sparkles className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-slate-600 leading-relaxed">
-                {legalCase.aiSummary}
+                {cleanSummary(legalCase.aiSummary)}
               </p>
               {legalCase.aiSuggestedAction && (
                 <p className="text-xs text-emerald-700/90 font-medium mt-1.5 truncate">
-                  💡 প্রস্তাবিত পদক্ষেপ: {legalCase.aiSuggestedAction}
+                  💡 {language === 'bn' ? 'প্রস্তাবিত পদক্ষেপ:' : 'Suggested Action:'} {legalCase.aiSuggestedAction}
                 </p>
               )}
             </div>
@@ -199,12 +245,12 @@ export const TriageCard: React.FC<TriageCardProps> = ({ legalCase, onSelect }) =
         <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
           <div className="flex items-center gap-1.5 font-medium text-slate-600">
             {renderChannelIcon()}
-            <span>{legalCase.channelLabel}</span>
+            <span>{getChannelLabel()}</span>
           </div>
           <span className="text-slate-300">·</span>
           <div className="flex items-center gap-1 text-slate-400">
             <Clock className="w-3.5 h-3.5" />
-            <span>{legalCase.timeAgo}</span>
+            <span>{getTimeAgo()}</span>
           </div>
           <div className="hidden sm:inline-flex">
             {renderVerificationBadge()}

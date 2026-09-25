@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { UserRole } from './types';
+import { useLanguage } from './context/LanguageContext';
 import { useNetworkStatus } from './hooks/useNetworkStatus';
 import { Header } from './components/common/Header';
 import { MobileBottomNav } from './components/common/MobileBottomNav';
@@ -24,16 +25,19 @@ import {
 export default function App() {
   const [currentRole, setCurrentRole] = useState<UserRole>('dlao');
   const { isOnline, simulatedOffline, toggleSimulatedNetwork } = useNetworkStatus();
+  const { language, setLanguage } = useLanguage();
 
   return (
     <div className="min-h-screen bg-slate-50/50 flex flex-col font-sans selection:bg-emerald-200 selection:text-emerald-900 pb-16 lg:pb-0">
-      {/* Top Header with Role Switcher & Network Toggle */}
+      {/* Top Header with Role Switcher, Language Toggle & Network Toggle */}
       <Header
         currentRole={currentRole}
         onRoleChange={setCurrentRole}
         isOnline={isOnline}
         simulatedOffline={simulatedOffline}
         onToggleSimulatedNetwork={toggleSimulatedNetwork}
+        language={language}
+        onLanguageChange={setLanguage}
       />
 
       {/* Offline Alert Strip if currently offline */}
@@ -46,14 +50,16 @@ export default function App() {
           <div className="flex items-center gap-1.5">
             <WifiOff className="w-4 h-4 text-slate-950 animate-pulse shrink-0" />
             <span>
-              অফলাইন মোড সক্রিয়: তথ্য আপনার ডিভাইসে নিরাপদে জমা হচ্ছে। নেট ফিরলে সিঙ্ক হবে।
+              {language === 'bn' 
+                ? 'অফলাইন মোড সক্রিয়: তথ্য আপনার ডিভাইসে নিরাপদে জমা হচ্ছে। নেট ফিরলে সিঙ্ক হবে।'
+                : 'Offline mode active: Data saved locally. Will sync when reconnected.'}
             </span>
           </div>
           <button
             onClick={() => toggleSimulatedNetwork(false)}
             className="bg-slate-950 text-white px-3 py-1 rounded-lg text-[11px] font-bold hover:bg-slate-800 transition active:scale-95 shrink-0"
           >
-            অনলাইন করুন
+            {language === 'bn' ? 'অনলাইন করুন' : 'Go Online'}
           </button>
         </aside>
       )}
@@ -64,6 +70,7 @@ export default function App() {
         {currentRole === 'dlao' && (
           <TriageDashboard
             onNavigateToIntake={() => setCurrentRole('udc')}
+            language={language}
           />
         )}
 
@@ -74,12 +81,13 @@ export default function App() {
             simulatedOffline={simulatedOffline}
             onToggleSimulatedNetwork={toggleSimulatedNetwork}
             onNavigateToDashboard={() => setCurrentRole('dlao')}
+            language={language}
           />
         )}
 
         {/* Role 3: Citizen / Proxy View */}
         {currentRole === 'citizen' && (
-          <CitizenView />
+          <CitizenView language={language} />
         )}
 
         {/* Role 4: Mediator View (Mediation & Settlement Module - Challenges T7 & T11) */}
@@ -101,20 +109,22 @@ export default function App() {
           <div className="flex items-center gap-2 justify-center md:justify-start">
             <Scale className="w-4 h-4 text-emerald-400 shrink-0" />
             <span className="text-white font-bold">
-              জাতীয় আইনগত সহায়তা প্রদান সংস্থা (National Legal Aid Services Organization - NLASO)
+              {language === 'bn' 
+                ? 'জাতীয় আইনগত সহায়তা প্রদান সংস্থা (NLASO)'
+                : 'National Legal Aid Services Organization (NLASO)'}
             </span>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-[11px]">
             <span className="flex items-center gap-1 text-emerald-300">
               <ShieldCheck className="w-3.5 h-3.5" />
-              লিগ্যাল এইড অ্যাক্ট ২০০০ সমর্থিত
+              {language === 'bn' ? 'লিগ্যাল এইড অ্যাক্ট ২০০০ সমর্থিত' : 'Legal Aid Act 2000 Compliant'}
             </span>
             <span>·</span>
-            <span>প্রক্সি প্রোভেন্যান্স সুরক্ষা এনক্রিপ্টেড</span>
+            <span>{language === 'bn' ? 'প্রক্সি প্রোভেন্যান্স সুরক্ষা এনক্রিপ্টেড' : 'Proxy Provenance Protected'}</span>
             <span>·</span>
             <a href="tel:16430" className="font-mono text-emerald-400 hover:underline">
-              হটলাইন: ১৬৪৩০ (টোল-ফ্রি)
+              {language === 'bn' ? 'হটলাইন: ১৬৪৩০ (টোল-ফ্রি)' : 'Hotline: 16430 (Toll-Free)'}
             </a>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { LegalCase } from '../../types';
+import { LegalCase, Language } from '../../types';
+import { useLanguage } from '../../context/LanguageContext';
 import { ProvenanceHeader } from './ProvenanceHeader';
 import { JurisdictionReferralFlow } from './JurisdictionReferralFlow';
 import { SensitiveDocumentsViewer } from './SensitiveDocumentsViewer';
@@ -27,13 +28,18 @@ interface CaseDetailModalProps {
   legalCase: LegalCase | null;
   onClose: () => void;
   onUpdateCase?: (updated: LegalCase) => void;
+  language?: Language;
 }
 
 export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
   legalCase,
   onClose,
   onUpdateCase,
+  language: propLanguage,
 }) => {
+  const { language: ctxLanguage } = useLanguage();
+  const language = propLanguage || ctxLanguage;
+
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [assignedLawyerInput, setAssignedLawyerInput] = useState(
     legalCase?.assignedLawyer || ''
@@ -43,25 +49,33 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
   if (!legalCase) return null;
 
   const handleAssignLawyer = () => {
-    const lawyerName = assignedLawyerInput.trim() || 'অ্যাডভোকেট মোঃ দেলোয়ার হোসেন (প্যানেল আইনজীবী)';
+    const lawyerName = assignedLawyerInput.trim() || (language === 'bn' ? 'অ্যাডভোকেট মোঃ দেলোয়ার হোসেন' : 'Advocate Md. Delwar Hossain');
     const updated: LegalCase = {
       ...legalCase,
       assignedLawyer: lawyerName,
       status: 'lawyer_assigned',
     };
     saveSingleCase(updated);
-    setActionSuccessMessage(`প্যানেল আইনজীবী নিয়োগ সম্পন্ন: ${lawyerName}`);
+    setActionSuccessMessage(
+      language === 'bn' 
+        ? `প্যানেল আইনজীবী নিয়োগ সম্পন্ন: ${lawyerName}` 
+        : `Panel lawyer assigned: ${lawyerName}`
+    );
   };
 
   const handleScheduleADR = () => {
-    const adrDate = '১০ অক্টোবর ২০২৬, সকাল ১১:০০ টা';
+    const adrDate = language === 'bn' ? '১০ অক্টোবর ২০২৬, সকাল ১১:০০ টা' : '10 October 2026, 11:00 AM';
     const updated: LegalCase = {
       ...legalCase,
       adrDate,
       status: 'adr_scheduled',
     };
     saveSingleCase(updated);
-    setActionSuccessMessage(`এডিআর (ADR) মধ্যস্থতার নোটিশ জারি ও তারিখ নির্ধারিত: ${adrDate}`);
+    setActionSuccessMessage(
+      language === 'bn'
+        ? `এডিআর মধ্যস্থতার নোটিশ জারি ও তারিখ নির্ধারিত: ${adrDate}`
+        : `ADR Mediation notice issued and date scheduled: ${adrDate}`
+    );
   };
 
   const handleEmergencyPoliceAlert = () => {
@@ -71,7 +85,11 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
       officerNotes: (legalCase.officerNotes || '') + '\n[জরুরি সতর্কতা]: ৯৯৯ ও সংশ্লিষ্ট ওসির নিকট জরুরি মেসেজ প্রেরিত।',
     };
     saveSingleCase(updated);
-    setActionSuccessMessage(`জরুরি পুলিশ প্রটেকশন রিকোয়েস্ট প্রেরিত: ${legalCase.policeStation}`);
+    setActionSuccessMessage(
+      language === 'bn'
+        ? `জরুরি পুলিশ প্রটেকশন রিকোয়েস্ট প্রেরিত: ${legalCase.policeStation}`
+        : `Emergency police protection request sent to: ${legalCase.policeStation}`
+    );
   };
 
   const handleVerifySubject = () => {
@@ -83,7 +101,11 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
       },
     };
     saveSingleCase(updated);
-    setActionSuccessMessage(`ভুক্তভোগীর পরিচয় সফলভাবে যাচাইকৃত চিহ্নিত হয়েছে।`);
+    setActionSuccessMessage(
+      language === 'bn'
+        ? `ভুক্তভোগীর পরিচয় সফলভাবে যাচাইকৃত চিহ্নিত হয়েছে।`
+        : `Subject identity marked as verified.`
+    );
   };
 
   const saveSingleCase = (updated: LegalCase) => {
@@ -96,12 +118,21 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
     if (onUpdateCase) onUpdateCase(updated);
   };
 
+  const cleanSummary = (text: string) => {
+    if (text.includes('(')) {
+      return language === 'bn' 
+        ? text.split('(')[1]?.replace(')', '')?.trim() || text 
+        : text.split('(')[0]?.trim();
+    }
+    return text;
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/70 backdrop-blur-xs flex justify-end transition-opacity"
       role="dialog"
       aria-modal="true"
-      aria-label="মামলার পূর্ণাঙ্গ ডসিয়ার ও প্রমাণক তথ্য"
+      aria-label={language === 'bn' ? 'মামলার পূর্ণাঙ্গ ডসিয়ার ও প্রমাণক তথ্য' : 'Case Dossier & Evidence'}
     >
       {/* Backdrop overlay dismiss */}
       <div className="fixed inset-0" onClick={onClose} />
@@ -120,7 +151,7 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] sm:text-xs uppercase tracking-wider font-semibold text-emerald-400">
-                  মামলা কেস নথি (Dossier)
+                  {language === 'bn' ? 'মামলা কেস নথি' : 'Case Dossier'}
                 </span>
                 <span className="font-mono text-[11px] sm:text-xs bg-slate-800 px-1.5 py-0.2 rounded text-slate-300 font-bold">
                   {legalCase.trackingNumber}
@@ -135,16 +166,16 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
           <div className="flex items-center gap-1.5 shrink-0">
             <button
               onClick={() => window.print()}
-              className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition active:scale-95"
-              title="প্রিন্ট করুন"
-              aria-label="কেস নথি প্রিন্ট করুন"
+              className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition active:scale-95 cursor-pointer"
+              title={language === 'bn' ? 'প্রিন্ট করুন' : 'Print'}
+              aria-label={language === 'bn' ? 'কেস নথি প্রিন্ট করুন' : 'Print Dossier'}
             >
               <Printer className="w-4 h-4" />
             </button>
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition active:scale-95"
-              aria-label="প্যানেল বন্ধ করুন"
+              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition active:scale-95 cursor-pointer"
+              aria-label={language === 'bn' ? 'প্যানেল বন্ধ করুন' : 'Close Panel'}
             >
               <X className="w-5 h-5" />
             </button>
@@ -163,7 +194,7 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
             </div>
             <button
               onClick={() => setActionSuccessMessage(null)}
-              className="text-emerald-100 hover:text-white"
+              className="text-emerald-100 hover:text-white cursor-pointer"
             >
               ✕
             </button>
@@ -172,11 +203,12 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
 
         {/* Scrollable Body Content */}
         <div className="flex-1 p-5 sm:p-6 space-y-6 overflow-y-auto">
-          {/* VIEW 2 REQUIREMENT: Case Detail Header (Provenance Master Component) */}
-          <section aria-label="প্রোভেন্যান্স মাস্টার কম্পোনেন্ট">
+          {/* Provenance Master Component */}
+          <section aria-label={language === 'bn' ? 'প্রোভেন্যান্স মাস্টার কম্পোনেন্ট' : 'Provenance Details'}>
             <ProvenanceHeader
               provenance={legalCase.provenance}
               trackingNumber={legalCase.trackingNumber}
+              language={language}
             />
           </section>
 
@@ -185,32 +217,34 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
             <div className="flex items-center justify-between pb-2 border-b border-emerald-200/80">
               <div className="flex items-center gap-2 text-xs font-bold text-emerald-900">
                 <span className="w-2 h-2 rounded-full bg-emerald-600 animate-ping" />
-                <span>এআই ট্রায়াজ ও স্বয়ংক্রিয় ঝুঁকি মূল্যায়ন (AI Triage Score)</span>
+                <span>
+                  {language === 'bn' ? 'এআই ট্রায়াজ ও স্বয়ংক্রিয় মূল্যায়ন' : 'AI Triage & Automated Assessment'}
+                </span>
               </div>
               {legalCase.aiConfidenceScore && (
                 <span className="text-xs font-mono font-bold bg-white text-emerald-800 px-2.5 py-0.5 rounded-full border border-emerald-300">
-                  নির্ভুলতা স্কোর: {legalCase.aiConfidenceScore}%
+                  {language === 'bn' ? 'নির্ভুলতা স্কোর' : 'Confidence'}: {legalCase.aiConfidenceScore}%
                 </span>
               )}
             </div>
             <div className="mt-3 space-y-2">
               <div className="text-sm font-semibold text-slate-800">
-                {legalCase.aiSummary}
+                {cleanSummary(legalCase.aiSummary)}
               </div>
               {legalCase.aiSuggestedAction && (
                 <div className="text-xs text-emerald-900 bg-white/80 p-2.5 rounded-xl border border-emerald-200 leading-relaxed">
-                  <strong>সুপারিশকৃত সরকারি প্রতিকার: </strong>
+                  <strong>{language === 'bn' ? 'সুপারিশকৃত সরকারি প্রতিকার:' : 'Recommended Relief:'} </strong>
                   {legalCase.aiSuggestedAction}
                 </div>
               )}
             </div>
           </div>
 
-          {/* Incident Description (Text-Heavy Form Content) */}
+          {/* Incident Description */}
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-3">
             <div className="flex items-center gap-2 text-sm font-bold text-slate-900 pb-2 border-b border-slate-100">
               <FileText className="w-4 h-4 text-emerald-700" />
-              <span>ঘটনার বিস্তারিত বর্ণনা (Full Text Allegations):</span>
+              <span>{language === 'bn' ? 'ঘটনার বিস্তারিত বর্ণনা:' : 'Full Text Allegations:'}</span>
             </div>
             <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line bg-slate-50 p-4 rounded-xl border border-slate-200/80">
               {legalCase.incidentDescription}
@@ -221,7 +255,7 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
               <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                প্রার্থিত আইনি প্রতিকার (Desired Relief)
+                {language === 'bn' ? 'প্রার্থিত আইনি প্রতিকার' : 'Desired Legal Relief'}
               </div>
               <p className="text-sm font-semibold text-slate-800">
                 {legalCase.desiredRelief}
@@ -230,27 +264,27 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
 
             <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
               <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
-                আইনি এখতিয়ার ও থানা (Police Jurisdiction)
+                {language === 'bn' ? 'আইনি এখতিয়ার ও থানা' : 'Police Jurisdiction'}
               </div>
               <p className="text-sm font-semibold text-slate-800 flex items-center gap-1.5">
                 <MapPin className="w-4 h-4 text-red-600 shrink-0" />
                 <span>{legalCase.policeStation}, {legalCase.district}</span>
               </p>
               <p className="text-xs text-slate-500 mt-1">
-                ইউনিয়ন: {legalCase.unionParishad || 'ইউডিসি অধিক্ষেত্র'}
+                {language === 'bn' ? 'ইউনিয়ন' : 'Union'}: {legalCase.unionParishad || (language === 'bn' ? 'ইউডিসি অধিক্ষেত্র' : 'UDC Jurisdiction')}
               </p>
             </div>
           </div>
 
-          {/* Voice Note Recording Audio Player Mockup (for UDC/Illiterate callers) */}
+          {/* Voice Note Recording Audio Player Mockup */}
           <div className="rounded-2xl border border-blue-200 bg-blue-50/50 p-4 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs font-bold text-blue-900">
                 <Mic className="w-4 h-4 text-blue-700" />
-                <span>মৌখিক জবানবন্দি / ভয়েস অডিও রেকর্ড (UDC Voice Memo)</span>
+                <span>{language === 'bn' ? 'মৌখিক জবানবন্দি / ভয়েস অডিও রেকর্ড' : 'Voice Memo Recording'}</span>
               </div>
               <span className="text-xs font-mono text-blue-700 font-semibold">
-                দৈর্ঘ্য: {legalCase.audioDuration || '০১:৩২ মিনিট'}
+                {language === 'bn' ? 'দৈর্ঘ্য:' : 'Duration:'} {legalCase.audioDuration || (language === 'bn' ? '০১:৩২ মিনিট' : '01:32 min')}
               </span>
             </div>
 
@@ -258,8 +292,8 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
             <div className="bg-white p-3 rounded-xl border border-blue-200 flex items-center gap-3">
               <button
                 onClick={() => setIsPlayingAudio(!isPlayingAudio)}
-                className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shrink-0 shadow-sm active:scale-95 transition"
-                aria-label={isPlayingAudio ? 'অডিও থামান' : 'অডিও শুনুন'}
+                className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shrink-0 shadow-sm active:scale-95 transition cursor-pointer"
+                aria-label={isPlayingAudio ? (language === 'bn' ? 'অডিও থামান' : 'Pause audio') : (language === 'bn' ? 'অডিও শুনুন' : 'Play audio')}
               >
                 {isPlayingAudio ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
               </button>
@@ -280,22 +314,24 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
                   ))}
                 </div>
                 <div className="flex justify-between text-[10px] text-slate-500 mt-1">
-                  <span>{isPlayingAudio ? 'চলছে: ০০:১৮' : '০০:০০'}</span>
+                  <span>{isPlayingAudio ? (language === 'bn' ? 'চলছে: ০০:১৮' : 'Playing: 00:18') : '০০:০০'}</span>
                   <span>{legalCase.audioDuration || '০১:৩২'}</span>
                 </div>
               </div>
             </div>
 
-            {/* Bengali Speech-to-Text Transcription */}
+            {/* Speech-to-Text Transcription */}
             {legalCase.audioTranscript && (
               <div className="bg-white/90 p-3 rounded-xl border border-blue-100 text-xs text-slate-700">
-                <span className="font-bold text-blue-950">স্বয়ংক্রিয় বাংলা রূপান্তর (ASR): </span>
+                <span className="font-bold text-blue-950">
+                  {language === 'bn' ? 'স্বয়ংক্রিয় রূপান্তর (ASR):' : 'Automated Transcription (ASR):'}{' '}
+                </span>
                 <span className="italic font-serif">"{legalCase.audioTranscript}"</span>
               </div>
             )}
           </div>
 
-          {/* Challenge T2: Jurisdiction Escalation & Ping-Pong Referral Flow */}
+          {/* Challenge T2: Jurisdiction Escalation & Referral Flow */}
           {(legalCase.referralHistory || legalCase.pingPongBouncesCount || legalCase.category === 'Sensitive/Image Harassment') && (
             <JurisdictionReferralFlow
               legalCase={legalCase}
@@ -303,7 +339,7 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
             />
           )}
 
-          {/* Challenge A3: Documents & Evidence Section with Sensitive Access Rules */}
+          {/* Challenge A3: Documents & Evidence Section */}
           <SensitiveDocumentsViewer
             legalCase={legalCase}
             onUpdateCase={onUpdateCase}
@@ -317,12 +353,14 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
                   <UserCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-xs text-emerald-800 font-semibold">নিযুক্ত সরকারি আইনজীবী:</div>
+                  <div className="text-xs text-emerald-800 font-semibold">
+                    {language === 'bn' ? 'নিযুক্ত সরকারি আইনজীবী:' : 'Assigned Government Lawyer:'}
+                  </div>
                   <div className="text-sm font-bold text-emerald-950">{legalCase.assignedLawyer}</div>
                 </div>
               </div>
               <span className="text-xs bg-emerald-200 text-emerald-900 font-bold px-3 py-1 rounded-full border border-emerald-400">
-                মামলা চলমান
+                {language === 'bn' ? 'মামলা চলমান' : 'Case Active'}
               </span>
             </div>
           )}
@@ -334,12 +372,14 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
                   <Clock className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-xs text-blue-800 font-semibold">এডিআর মধ্যস্থতা বৈঠক:</div>
+                  <div className="text-xs text-blue-800 font-semibold">
+                    {language === 'bn' ? 'এডিআর মধ্যস্থতা বৈঠক:' : 'ADR Mediation Session:'}
+                  </div>
                   <div className="text-sm font-bold text-blue-950">{legalCase.adrDate}</div>
                 </div>
               </div>
               <span className="text-xs bg-blue-200 text-blue-900 font-bold px-3 py-1 rounded-full border border-blue-400">
-                নোটিশ জারি
+                {language === 'bn' ? 'নোটিশ জারি' : 'Notice Issued'}
               </span>
             </div>
           )}
@@ -348,28 +388,28 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
           <div className="rounded-2xl border-2 border-slate-800 bg-slate-900 text-white p-5 space-y-4">
             <h4 className="text-sm font-bold text-emerald-400 flex items-center gap-2">
               <Scale className="w-4 h-4" />
-              <span>DLAO প্রশাসনিক অ্যাকশন গ্রহণ (Take Triage Action)</span>
+              <span>{language === 'bn' ? 'DLAO প্রশাসনিক অ্যাকশন গ্রহণ' : 'DLAO Administrative Action'}</span>
             </h4>
 
             {/* Assign Panel Lawyer Input */}
             <div className="space-y-2">
               <label className="block text-xs font-semibold text-slate-300">
-                প্যানেল আইনজীবী নিয়োগ করুন (বা ডিফল্ট নির্বাচন করুন):
+                {language === 'bn' ? 'প্যানেল আইনজীবী নিয়োগ করুন:' : 'Assign Panel Lawyer:'}
               </label>
               <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
                   value={assignedLawyerInput}
                   onChange={(e) => setAssignedLawyerInput(e.target.value)}
-                  placeholder="যেমন: অ্যাডভোকেট সৈয়দ নাসির উদ্দীন (প্যানেল নং-০৪)"
+                  placeholder={language === 'bn' ? 'যেমন: অ্যাডভোকেট সৈয়দ নাসির উদ্দীন' : 'e.g. Advocate Syed Nasir Uddin'}
                   className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-base sm:text-sm text-white focus:outline-hidden focus:border-emerald-500"
                 />
                 <button
                   onClick={handleAssignLawyer}
-                  className="min-h-[44px] bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold shrink-0 transition active:scale-95 flex items-center justify-center gap-1.5"
+                  className="min-h-[44px] bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold shrink-0 transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <UserCheck className="w-4 h-4" />
-                  <span>আইনজীবী নিযুক্ত</span>
+                  <span>{language === 'bn' ? 'আইনজীবী নিযুক্ত' : 'Assign Lawyer'}</span>
                 </button>
               </div>
             </div>
@@ -378,25 +418,25 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-800">
               <button
                 onClick={handleScheduleADR}
-                className="min-h-[44px] bg-slate-800 hover:bg-slate-700 border border-slate-700 text-blue-300 px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95"
+                className="min-h-[44px] bg-slate-800 hover:bg-slate-700 border border-slate-700 text-blue-300 px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
               >
-                <span>এডিআর / মধ্যস্থতা তলব</span>
+                <span>{language === 'bn' ? 'এডিআর / মধ্যস্থতা তলব' : 'Schedule ADR'}</span>
               </button>
 
               <button
                 onClick={handleEmergencyPoliceAlert}
-                className="min-h-[44px] bg-red-950/80 hover:bg-red-900 border border-red-700 text-red-200 px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95"
+                className="min-h-[44px] bg-red-950/80 hover:bg-red-900 border border-red-700 text-red-200 px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
               >
                 <AlertOctagon className="w-4 h-4 text-red-400" />
-                <span>জরুরি ৯৯৯ / থানা সংযোগ</span>
+                <span>{language === 'bn' ? 'জরুরি ৯৯৯ / থানা সংযোগ' : 'Emergency 999 Alert'}</span>
               </button>
 
               <button
                 onClick={handleVerifySubject}
-                className="min-h-[44px] bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-700 text-emerald-300 px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95"
+                className="min-h-[44px] bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-700 text-emerald-300 px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
               >
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>পরিচয় যাচাই নিশ্চিত</span>
+                <span>{language === 'bn' ? 'পরিচয় যাচাই নিশ্চিত' : 'Confirm Identity'}</span>
               </button>
             </div>
           </div>
@@ -408,13 +448,13 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
           style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0.75rem)' }}
         >
           <span className="text-xs text-slate-500">
-            শেষ হালনাগাদ: {legalCase.timeAgo}
+            {language === 'bn' ? 'শেষ হালনাগাদ:' : 'Last Updated:'} {legalCase.timeAgo}
           </span>
           <button
             onClick={onClose}
-            className="min-h-[40px] px-6 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-bold transition active:scale-95"
+            className="min-h-[40px] px-6 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs sm:text-sm font-bold transition active:scale-95 cursor-pointer"
           >
-            বন্ধ করুন
+            {language === 'bn' ? 'বন্ধ করুন' : 'Close'}
           </button>
         </div>
       </div>

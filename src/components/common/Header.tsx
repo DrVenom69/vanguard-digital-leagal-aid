@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { UserRole } from '../../types';
+import { UserRole, Language } from '../../types';
+import { useLanguage } from '../../context/LanguageContext';
 import { PWAInstallButton } from './PWAInstallButton';
 import { 
   Scale, 
@@ -24,6 +25,8 @@ interface HeaderProps {
   isOnline: boolean;
   simulatedOffline: boolean;
   onToggleSimulatedNetwork: (offline: boolean) => void;
+  language?: Language;
+  onLanguageChange?: (lang: Language) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -32,12 +35,16 @@ export const Header: React.FC<HeaderProps> = ({
   isOnline,
   simulatedOffline,
   onToggleSimulatedNetwork,
+  language: propLanguage,
+  onLanguageChange: propOnLanguageChange,
 }) => {
   const [showRoleDrawer, setShowRoleDrawer] = useState(false);
+  const context = useLanguage();
+  const language = propLanguage || context.language;
+  const onLanguageChange = propOnLanguageChange || context.setLanguage;
 
   const rolesConfig: {
     role: UserRole;
-    num: string;
     title: string;
     subtitle: string;
     icon: React.FC<{ className?: string }>;
@@ -45,41 +52,36 @@ export const Header: React.FC<HeaderProps> = ({
   }[] = [
     {
       role: 'dlao',
-      num: '১',
-      title: 'DLAO Admin (ট্রায়াজ)',
-      subtitle: 'আইনগত সহায়তা আবেদন ব্যাকলগ ও ঝুঁকি মূল্যায়ন',
+      title: language === 'bn' ? 'জেলা কর্মকর্তা (DLAO)' : 'DLAO Admin',
+      subtitle: language === 'bn' ? 'আবেদন ব্যাকলগ ও তাৎক্ষণিক ঝুঁকি মূল্যায়ন' : 'Case backlog triage & risk assessment',
       icon: Building2,
       accentColor: 'text-emerald-400',
     },
     {
       role: 'udc',
-      num: '২',
-      title: 'UDC উদ্যোক্তা (ইনটেক)',
-      subtitle: 'অফলাইন-ফার্স্ট সহকারী অভিযোগ এন্ট্রি ও ভয়েস রেকর্ড',
+      title: language === 'bn' ? 'ইউডিসি উদ্যোক্তা' : 'UDC Intake',
+      subtitle: language === 'bn' ? 'অফলাইন-ফার্স্ট সহকারী অভিযোগ এন্ট্রি ও অডিও' : 'Offline-first assisted intake & audio memo',
       icon: Smartphone,
       accentColor: 'text-blue-400',
     },
     {
       role: 'citizen',
-      num: '৩',
-      title: 'নাগরিক / প্রতিনিধি',
-      subtitle: 'মালেকের সহজ অডিও ভিউ ও আবেদন ট্র্যাকিং',
+      title: language === 'bn' ? 'নাগরিক ও প্রক্সি' : 'Citizen & Proxy',
+      subtitle: language === 'bn' ? 'সহজ অডিও বিবরণ ও আবেদন ট্র্যাকিং' : 'Audio guidance & live case tracking',
       icon: UserCheck,
       accentColor: 'text-purple-400',
     },
     {
       role: 'mediator',
-      num: '৪',
-      title: 'মধ্যস্থতাকারী (ADR)',
-      subtitle: 'এআই সমঝোতা খসড়া ও দ্বি-পক্ষীয় ই-স্বাক্ষর',
+      title: language === 'bn' ? 'সালিশ ও মধ্যস্থতা' : 'ADR Mediator',
+      subtitle: language === 'bn' ? 'এআই সমঝোতা খসড়া ও দ্বি-পক্ষীয় ই-স্বাক্ষর' : 'AI settlement deed & e-signature',
       icon: Scale,
       accentColor: 'text-teal-400',
     },
     {
       role: 'lawyer',
-      num: '৫',
-      title: 'প্যানেল আইনজীবী (B5)',
-      subtitle: 'মামলা অগ্রগতি ও শুনানির তারিখ আপডেট পোর্টাল',
+      title: language === 'bn' ? 'প্যানেল আইনজীবী' : 'Panel Lawyer',
+      subtitle: language === 'bn' ? 'মামলা অগ্রগতি ও আদালতের আদেশের রিপোর্ট' : 'Case progress & court order reporting',
       icon: Briefcase,
       accentColor: 'text-amber-400',
     },
@@ -97,11 +99,11 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
               <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-red-600 border border-emerald-400 shrink-0" />
               <span className="font-semibold text-white tracking-wide truncate text-[11px] sm:text-xs">
-                গণপ্রজাতন্ত্রী বাংলাদেশ সরকার
+                {language === 'bn' ? 'গণপ্রজাতন্ত্রী বাংলাদেশ সরকার' : "Govt. of the People's Republic of Bangladesh"}
               </span>
               <span className="text-emerald-400 hidden sm:inline">|</span>
               <span className="hidden md:inline truncate text-[11px] sm:text-xs text-emerald-300">
-                জাতীয় আইনগত সহায়তা প্রদান সংস্থা (NLASO)
+                {language === 'bn' ? 'জাতীয় আইনগত সহায়তা প্রদান সংস্থা (NLASO)' : 'National Legal Aid Services Organization (NLASO)'}
               </span>
             </div>
 
@@ -109,26 +111,28 @@ export const Header: React.FC<HeaderProps> = ({
               <a
                 href="tel:16430"
                 className="inline-flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white px-2 sm:px-2.5 py-0.5 rounded-full font-bold text-[11px] sm:text-xs shadow-xs transition active:scale-95"
-                aria-label="টোল ফ্রি জাতীয় লিগ্যাল এইড হটলাইন ১৬৪৩০"
+                aria-label="National Legal Aid Hotline 16430"
               >
                 <PhoneCall className="w-3 h-3" />
-                <span>১৬৪৩০</span>
-                <span className="text-[9px] bg-red-800/90 px-1 rounded uppercase hidden xs:inline">টোল-ফ্রি</span>
+                <span>{language === 'bn' ? '১৬৪৩০' : '16430'}</span>
+                <span className="text-[9px] bg-red-800/90 px-1 rounded uppercase hidden xs:inline">
+                  {language === 'bn' ? 'টোল-ফ্রি' : 'Toll-Free'}
+                </span>
               </a>
 
               <button
                 onClick={() => {
-                  if (confirm('ডেমো ডেটা প্রাথমিক অবস্থায় রিসেট করতে চান?')) {
+                  if (confirm(language === 'bn' ? 'ডেমো ডেটা প্রাথমিক অবস্থায় রিসেট করতে চান?' : 'Reset demo data to initial state?')) {
                     resetDemoData();
                     window.location.reload();
                   }
                 }}
                 className="text-slate-400 hover:text-white p-1 text-[11px] flex items-center gap-1 transition"
-                title="রিসেট ডেমো ডেটা"
-                aria-label="ডেমো তথ্য পুনরায় সেট করুন"
+                title={language === 'bn' ? 'রিসেট ডেমো ডেটা' : 'Reset demo data'}
+                aria-label="Reset demo data"
               >
                 <RotateCcw className="w-3 h-3" />
-                <span className="hidden lg:inline">রিসেট</span>
+                <span className="hidden lg:inline">{language === 'bn' ? 'রিসেট' : 'Reset'}</span>
               </button>
             </div>
           </div>
@@ -145,7 +149,7 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
                   <h1 className="text-base sm:text-lg font-black tracking-tight text-white font-sans truncate">
-                    ডিজিটাল লিগ্যাল এইড
+                    {language === 'bn' ? 'ডিজিটাল লিগ্যাল এইড' : 'Digital Legal Aid'}
                   </h1>
                   <span className="hidden xs:inline-block bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] sm:text-[10px] font-bold px-1.5 py-0.2 rounded">
                     PWA
@@ -156,20 +160,48 @@ export const Header: React.FC<HeaderProps> = ({
                   type="button"
                   onClick={() => setShowRoleDrawer(true)}
                   className="lg:hidden flex items-center gap-1 text-[11px] text-emerald-300 font-bold hover:text-white transition group"
-                  aria-label="ভূমিকা পরিবর্তন করুন"
+                  aria-label="Change role"
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 group-hover:scale-125 transition-transform" />
                   <span className="truncate">{currentRoleInfo.title}</span>
                   <ChevronDown className="w-3 h-3 text-emerald-400 group-hover:translate-y-0.5 transition-transform shrink-0" />
                 </button>
                 <p className="hidden lg:block text-xs text-slate-400">
-                  অফলাইন-ফার্স্ট ট্রায়াজ ও প্রক্সি প্রোভেন্যান্স সিস্টেম
+                  {language === 'bn' ? 'অফলাইন-ফার্স্ট ট্রায়াজ ও প্রক্সি প্রোভেন্যান্স সিস্টেম' : 'Offline-first triage & proxy provenance system'}
                 </p>
               </div>
             </div>
 
-            {/* Mobile Actions: Network Toggle + Install Button */}
+            {/* Mobile Actions: Language Toggle + Network Toggle + Install Button */}
             <div className="lg:hidden flex items-center gap-1.5 shrink-0">
+              {/* Language Toggle: [ EN | বাং ] */}
+              <div className="inline-flex items-center bg-slate-800/90 p-0.5 rounded-full border border-slate-700/80 shadow-inner text-[10px] font-bold">
+                <button
+                  type="button"
+                  onClick={() => onLanguageChange('en')}
+                  className={`px-1.5 py-0.5 rounded-full transition-all ${
+                    language === 'en'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                  aria-label="Switch to English"
+                >
+                  EN
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onLanguageChange('bn')}
+                  className={`px-1.5 py-0.5 rounded-full transition-all ${
+                    language === 'bn'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                  aria-label="বাংলায় পরিবর্তন করুন"
+                >
+                  বাং
+                </button>
+              </div>
+
               <button
                 onClick={() => onToggleSimulatedNetwork(!simulatedOffline)}
                 className={`p-2 rounded-xl border text-xs font-semibold flex items-center gap-1 transition active:scale-95 ${
@@ -177,8 +209,8 @@ export const Header: React.FC<HeaderProps> = ({
                     ? 'bg-emerald-950/80 border-emerald-700 text-emerald-300'
                     : 'bg-amber-950/80 border-amber-600 text-amber-300 animate-pulse'
                 }`}
-                aria-label={isOnline ? 'সিমুলেটেড অফলাইন করুন' : 'অনলাইন করুন'}
-                title={isOnline ? 'ইন্টারনেট অনলাইন (ট্যাপ করে অফলাইন টেস্ট করুন)' : 'অফলাইন মোড সক্রিয় (ট্যাপ করে অনলাইন করুন)'}
+                aria-label={isOnline ? 'Go offline' : 'Go online'}
+                title={isOnline ? (language === 'bn' ? 'ইন্টারনেট অনলাইন' : 'Internet Online') : (language === 'bn' ? 'অফলাইন মোড' : 'Offline Mode')}
               >
                 {isOnline ? <Wifi className="w-4 h-4 text-emerald-400" /> : <WifiOff className="w-4 h-4 text-amber-400" />}
               </button>
@@ -191,7 +223,7 @@ export const Header: React.FC<HeaderProps> = ({
               <div
                 className="bg-slate-800/90 p-1 rounded-xl border border-slate-700/80 flex items-center shadow-inner"
                 role="tablist"
-                aria-label="ব্যবহারকারীর ভূমিকা নির্বাচন"
+                aria-label="User role selection"
               >
                 {rolesConfig.map((item) => {
                   const Icon = item.icon;
@@ -215,6 +247,34 @@ export const Header: React.FC<HeaderProps> = ({
                 })}
               </div>
 
+              {/* Desktop Language Toggle: [ EN | বাং ] */}
+              <div className="inline-flex items-center bg-slate-800/90 p-0.5 rounded-full border border-slate-700/80 shadow-inner text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => onLanguageChange('en')}
+                  className={`px-2.5 py-1 rounded-full transition-all duration-150 ${
+                    language === 'en'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                  aria-label="Switch to English"
+                >
+                  EN
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onLanguageChange('bn')}
+                  className={`px-2.5 py-1 rounded-full transition-all duration-150 ${
+                    language === 'bn'
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                  aria-label="বাংলা ভাষায় পরিবর্তন করুন"
+                >
+                  বাং
+                </button>
+              </div>
+
               {/* Desktop Quick Network Simulation & Install Button */}
               <div className="flex items-center gap-2">
                 <button
@@ -224,18 +284,18 @@ export const Header: React.FC<HeaderProps> = ({
                       ? 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-emerald-400'
                       : 'bg-amber-950/80 hover:bg-amber-900/80 border-amber-600 text-amber-300 ring-1 ring-amber-500'
                   }`}
-                  title="হ্যাকথন পিচ সিমুলেশন: ইন্টারনেট অন/অফ পরীক্ষা করুন"
-                  aria-label={isOnline ? 'নেটওয়ার্ক অফলাইন সিমুলেট করুন' : 'নেটওয়ার্ক অনলাইন ফিরিয়ে আনুন'}
+                  title={language === 'bn' ? 'নেটওয়ার্ক সিমুলেশন' : 'Network simulation'}
+                  aria-label={isOnline ? 'Go offline' : 'Go online'}
                 >
                   {isOnline ? (
                     <>
                       <Wifi className="w-4 h-4 text-emerald-400" />
-                      <span>অনলাইন</span>
+                      <span>{language === 'bn' ? 'অনলাইন' : 'Online'}</span>
                     </>
                   ) : (
                     <>
                       <WifiOff className="w-4 h-4 text-amber-400 animate-pulse" />
-                      <span>অফলাইন</span>
+                      <span>{language === 'bn' ? 'অফলাইন' : 'Offline'}</span>
                     </>
                   )}
                 </button>
@@ -252,7 +312,7 @@ export const Header: React.FC<HeaderProps> = ({
           className="lg:hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex flex-col justify-end animate-in fade-in duration-200"
           role="dialog"
           aria-modal="true"
-          aria-label="ভূমিকা নির্বাচন ড্রয়ার"
+          aria-label="Role selector drawer"
         >
           {/* Backdrop click to dismiss */}
           <div className="flex-1" onClick={() => setShowRoleDrawer(false)} />
@@ -267,13 +327,13 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="flex items-center gap-2">
                 <Layers className="w-5 h-5 text-emerald-400" />
                 <h3 className="text-base font-black text-white">
-                  ব্যবহারকারীর ভূমিকা নির্বাচন করুন
+                  {language === 'bn' ? 'ব্যবহারকারীর ভূমিকা নির্বাচন করুন' : 'Select User Role'}
                 </h3>
               </div>
               <button
                 onClick={() => setShowRoleDrawer(false)}
                 className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition"
-                aria-label="ড্রয়ার বন্ধ করুন"
+                aria-label="Close drawer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -309,7 +369,7 @@ export const Header: React.FC<HeaderProps> = ({
                         </span>
                         {isSelected && (
                           <span className="text-[10px] font-bold bg-emerald-500 text-slate-950 px-2 py-0.5 rounded-full">
-                            সক্রিয়
+                            {language === 'bn' ? 'সক্রিয়' : 'Active'}
                           </span>
                         )}
                       </div>
@@ -323,7 +383,9 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
 
             <div className="pt-2 text-center text-xs text-slate-500">
-              💡 আপনি নিচের নেভিগেশন বার থেকেও যেকোনো সময় ভূমিকা পরিবর্তন করতে পারেন।
+              {language === 'bn'
+                ? '💡 আপনি নিচের নেভিগেশন বার থেকেও যেকোনো সময় ভূমিকা পরিবর্তন করতে পারেন।'
+                : '💡 You can also switch roles anytime from the bottom navigation bar.'}
             </div>
           </div>
         </div>
