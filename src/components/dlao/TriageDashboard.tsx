@@ -81,7 +81,7 @@ export const TriageDashboard: React.FC<TriageDashboardProps> = ({ onNavigateToIn
       */}
       <section
         aria-label="ব্যাকলগ লাইভ ট্রায়াজ স্ট্রিপ"
-        className="rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-4 sm:p-5 shadow-lg border border-slate-700"
+        className="rounded-3xl bg-linear-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-800/80"
       >
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
@@ -244,7 +244,7 @@ export const TriageDashboard: React.FC<TriageDashboardProps> = ({ onNavigateToIn
       </div>
 
       {/* Triage Cards Grid */}
-      <div className="space-y-3.5" role="feed" aria-label="ট্রায়াজ আবেদনসমূহের তালিকা">
+      <div className="space-y-5" role="feed" aria-label="ট্রায়াজ আবেদনসমূহের তালিকা">
         {filteredCases.length > 0 ? (
           filteredCases.map((c) => (
             <TriageCard

@@ -91,26 +91,26 @@ export const PatternAlert: React.FC<PatternAlertProps> = ({ onReassigned, classN
         <div
           role="alert"
           aria-live="assertive"
-          className="rounded-2xl border-2 border-red-500 bg-linear-to-r from-red-50 via-amber-50/60 to-white p-4 sm:p-5 shadow-sm"
+          className="bg-red-50/50 border border-red-100 rounded-3xl p-5"
         >
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="flex items-start gap-3.5">
-              <div className="w-11 h-11 rounded-xl bg-red-600 text-white flex items-center justify-center shrink-0 shadow-md animate-pulse">
-                <AlertTriangle className="w-6 h-6" />
+              <div className="w-10 h-10 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5" />
               </div>
               <div className="space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[11px] font-black uppercase tracking-wider bg-red-600 text-white px-2.5 py-0.5 rounded-full shadow-2xs">
+                  <span className="text-[11px] font-bold uppercase tracking-wider bg-red-100 text-red-700 px-2.5 py-0.5 rounded-full">
                     প্যাটার্ন অ্যালার্ট (Challenge T1 Pattern Alert)
                   </span>
-                  <span className="text-xs font-mono font-bold text-red-900 bg-red-100 px-2 py-0.5 rounded border border-red-300">
+                  <span className="text-xs font-mono font-medium text-slate-500 bg-white px-2.5 py-0.5 rounded-full border border-red-100">
                     আইনজীবী মনিটরিং
                   </span>
                 </div>
 
-                <h3 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+                <h3 className="text-base sm:text-lg font-black text-slate-800 flex items-center gap-2">
                   <span>Advocate Marzina Begum (অ্যাডভোকেট মারজিনা বেগম)</span>
-                  <span className="text-xs font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded-full">
+                  <span className="text-xs font-bold text-red-700 bg-red-100/70 px-2.5 py-0.5 rounded-full">
                     প্যানেল আইনজীবী নং-১২
                   </span>
                 </h3>
@@ -120,18 +120,18 @@ export const PatternAlert: React.FC<PatternAlertProps> = ({ onReassigned, classN
                   Inactivity Threshold Reached: Missed 2 updates across 3 cases.
                 </p>
 
-                <p className="text-xs text-slate-600 leading-relaxed max-w-2xl">
+                <p className="text-xs text-slate-500 leading-relaxed max-w-2xl">
                   আইনগত সহায়তা মনিটরিং অ্যালগরিদম শনাক্ত করেছে যে উক্ত আইনজীবীর বরাদ্দে থাকা ৩টি মামলার মধ্যে ২টিতে নির্ধারিত শুনানির পরও আদালতের অগ্রগতির রিপোর্ট বা আদেশের কপি দাখিল করা হয়নি।
                 </p>
               </div>
             </div>
 
-            {/* Action button: 'Review & Reassign' */}
+            {/* Softer ghost button */}
             <div className="flex items-center gap-2 w-full lg:w-auto shrink-0">
               <button
                 type="button"
                 onClick={() => setShowModal(true)}
-                className="w-full sm:w-auto min-h-[44px] justify-center px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-black text-xs sm:text-sm shadow-md transition active:scale-95 flex items-center gap-2 cursor-pointer"
+                className="w-full sm:w-auto min-h-[44px] justify-center px-5 py-2.5 rounded-xl bg-white text-red-600 border border-red-200 hover:bg-red-50 font-bold text-xs sm:text-sm transition active:scale-95 flex items-center gap-2 cursor-pointer shadow-xs"
                 aria-label="অ্যাডভোকেট মারজিনা বেগমের মামলাসমূহ রিভিউ ও রি-অ্যাসাইন করুন"
               >
                 <UserX className="w-4 h-4" />
@@ -142,7 +142,7 @@ export const PatternAlert: React.FC<PatternAlertProps> = ({ onReassigned, classN
         </div>
       ) : (
         /* Resolved state */
-        <div className="rounded-2xl border border-emerald-300 bg-emerald-50/80 p-4 flex items-center justify-between text-xs sm:text-sm text-emerald-900">
+        <div className="bg-emerald-50/50 border border-emerald-100 rounded-3xl p-5 flex items-center justify-between text-xs sm:text-sm text-emerald-900">
           <div className="flex items-center gap-2.5">
             <CheckCircle2 className="w-5 h-5 text-emerald-600" />
             <span>

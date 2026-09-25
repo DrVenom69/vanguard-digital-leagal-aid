@@ -26,7 +26,7 @@ export default function App() {
   const { isOnline, simulatedOffline, toggleSimulatedNetwork } = useNetworkStatus();
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col font-sans selection:bg-emerald-200 selection:text-emerald-900 pb-16 lg:pb-0">
+    <div className="min-h-screen bg-slate-50/50 flex flex-col font-sans selection:bg-emerald-200 selection:text-emerald-900 pb-16 lg:pb-0">
       {/* Top Header with Role Switcher & Network Toggle */}
       <Header
         currentRole={currentRole}
