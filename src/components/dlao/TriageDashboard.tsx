@@ -1,0 +1,291 @@
+import React, { useState, useEffect } from 'react';
+import { LegalCase } from '../../types';
+import { TriageCard } from './TriageCard';
+import { CaseDetailModal } from './CaseDetailModal';
+import { PatternAlert } from './PatternAlert';
+import { getStoredCases } from '../../utils/storage';
+import { 
+  AlertTriangle, 
+  Clock, 
+  Sparkles, 
+  Filter, 
+  Search, 
+  PlusCircle, 
+  CheckCircle,
+  Building,
+  RefreshCw,
+  Baby,
+  ShieldAlert
+} from 'lucide-react';
+
+interface TriageDashboardProps {
+  onNavigateToIntake?: () => void;
+}
+
+export const TriageDashboard: React.FC<TriageDashboardProps> = ({ onNavigateToIntake }) => {
+  const [cases, setCases] = useState<LegalCase[]>([]);
+  const [selectedCase, setSelectedCase] = useState<LegalCase | null>(null);
+  const [filterType, setFilterType] = useState<'all' | 'urgent' | 'overdue' | 'child_danger' | 'proxy' | 'sensitive'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const loadCases = () => {
+    setCases(getStoredCases());
+  };
+
+  useEffect(() => {
+    loadCases();
+    window.addEventListener('legal_aid_cases_updated', loadCases);
+    return () => {
+      window.removeEventListener('legal_aid_cases_updated', loadCases);
+    };
+  }, []);
+
+  // Backlog Live Counts as requested in prompt:
+  // (e.g., "3 New · 2 Urgent · 1 Overdue")
+  const newCount = cases.filter((c) => c.status === 'new').length;
+  const urgentCount = cases.filter((c) => c.priority === 'urgent').length;
+  const overdueCount = cases.filter((c) => c.isOverdue).length;
+
+  // Filter & Search logic
+  const filteredCases = cases.filter((c) => {
+    if (filterType === 'urgent' && c.priority !== 'urgent') return false;
+    if (filterType === 'overdue' && !c.isOverdue) return false;
+    if (filterType === 'child_danger' && !c.hasChildInDanger) return false;
+    if (filterType === 'proxy' && !c.provenance.isProxy) return false;
+    if (filterType === 'sensitive' && !c.isSensitive && c.category !== 'Sensitive/Image Harassment') return false;
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const subjectName = c.provenance.subjectName.toLowerCase();
+      const callerName = c.provenance.callerName.toLowerCase();
+      const tracking = c.trackingNumber.toLowerCase();
+      const summary = c.aiSummary.toLowerCase();
+      const district = c.district.toLowerCase();
+      return (
+        subjectName.includes(q) ||
+        callerName.includes(q) ||
+        tracking.includes(q) ||
+        summary.includes(q) ||
+        district.includes(q)
+      );
+    }
+
+    return true;
+  });
+
+  return (
+    <div className="space-y-6">
+      {/* 
+        MANDATORY REQUIREMENT:
+        Header Strip: A top bar showing live counts of the backlog (e.g., "3 New · 2 Urgent · 1 Overdue")
+      */}
+      <section
+        aria-label="ব্যাকলগ লাইভ ট্রায়াজ স্ট্রিপ"
+        className="rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-4 sm:p-5 shadow-lg border border-slate-700"
+      >
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-widest">
+              <Building className="w-4 h-4" />
+              <span>জেলা লিগ্যাল এইড অফিসার (DLAO) ট্রায়াজ কনসোল</span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-black text-white mt-1">
+              আইনগত সহায়তা আবেদন ব্যাকলগ ও তাৎক্ষণিক মূল্যায়ন
+            </h2>
+          </div>
+
+          {/* Prompt specified: "3 New · 2 Urgent · 1 Overdue" */}
+          <div
+            className="grid grid-cols-3 gap-1.5 sm:gap-2 bg-slate-950/60 p-2 sm:p-2.5 rounded-xl border border-slate-700/80 shadow-inner w-full md:w-auto text-center"
+            role="status"
+            aria-live="polite"
+          >
+            {/* New */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+              <div className="flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
+                <span className="font-extrabold text-sm sm:text-base font-mono">{newCount}</span>
+              </div>
+              <span className="text-[11px] sm:text-xs font-semibold">নতুন</span>
+            </div>
+
+            {/* Urgent */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 px-2.5 py-1.5 rounded-lg bg-red-500/20 text-red-300 border border-red-500/40">
+              <div className="flex items-center gap-1">
+                <span className="text-red-400 font-black text-xs">▲</span>
+                <span className="font-extrabold text-sm sm:text-base font-mono">{urgentCount}</span>
+              </div>
+              <span className="text-[11px] sm:text-xs font-semibold">জরুরি</span>
+            </div>
+
+            {/* Overdue */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40">
+              <div className="flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5 text-amber-400" />
+                <span className="font-extrabold text-sm sm:text-base font-mono">{overdueCount}</span>
+              </div>
+              <span className="text-[11px] sm:text-xs font-semibold truncate">মেয়াদোত্তীর্ণ</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick helper note */}
+        <div className="mt-3 pt-3 border-t border-slate-700/60 flex flex-wrap items-center justify-between text-xs text-slate-300 gap-2">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <span>
+              কৃত্রিম বুদ্ধিমত্তা প্রতিটি আবেদনের নির্যাতন মাত্রা, প্রক্সি ভেরিফিকেশন ও শিশু ঝুঁকি বিশ্লেষণ করে অগ্রাধিকার সাজিয়েছে।
+            </span>
+          </div>
+          {onNavigateToIntake && (
+            <button
+              onClick={onNavigateToIntake}
+              className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 transition"
+            >
+              <PlusCircle className="w-3.5 h-3.5" />
+              <span>নতুন ইনটেক শুরু</span>
+            </button>
+          )}
+        </div>
+      </section>
+
+      {/* Challenge T1: Pattern Alert for Lawyer Inactivity Threshold */}
+      <PatternAlert onReassigned={loadCases} />
+
+      {/* Filter and Search Bar */}
+      <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+        {/* Filter Pills with smooth momentum touch scrolling and no scrollbar */}
+        <div
+          className="flex items-center gap-1.5 overflow-x-auto pb-1.5 sm:pb-0 no-scrollbar smooth-touch-scroll"
+          role="tablist"
+          aria-label="মামলা ফিল্টারসমূহ"
+        >
+          <button
+            onClick={() => setFilterType('all')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap active:scale-95 ${
+              filterType === 'all'
+                ? 'bg-slate-900 text-white shadow-sm'
+                : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+            }`}
+          >
+            সকল আবেদন ({cases.length})
+          </button>
+
+          <button
+            onClick={() => setFilterType('urgent')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 active:scale-95 ${
+              filterType === 'urgent'
+                ? 'bg-red-600 text-white shadow-sm'
+                : 'bg-white text-red-700 border border-red-200 hover:bg-red-50'
+            }`}
+          >
+            <span>▲ অতি জরুরি ({urgentCount})</span>
+          </button>
+
+          <button
+            onClick={() => setFilterType('overdue')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 active:scale-95 ${
+              filterType === 'overdue'
+                ? 'bg-amber-500 text-slate-950 shadow-sm'
+                : 'bg-white text-amber-800 border border-amber-200 hover:bg-amber-50'
+            }`}
+          >
+            <span>মেয়াদোত্তীর্ণ ({overdueCount})</span>
+          </button>
+
+          <button
+            onClick={() => setFilterType('child_danger')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 active:scale-95 ${
+              filterType === 'child_danger'
+                ? 'bg-purple-700 text-white shadow-sm'
+                : 'bg-white text-purple-800 border border-purple-200 hover:bg-purple-50'
+            }`}
+          >
+            <Baby className="w-3.5 h-3.5" />
+            <span>শিশু ঝুঁকিতে</span>
+          </button>
+
+          <button
+            onClick={() => setFilterType('proxy')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 active:scale-95 ${
+              filterType === 'proxy'
+                ? 'bg-emerald-700 text-white shadow-sm'
+                : 'bg-white text-emerald-800 border border-emerald-200 hover:bg-emerald-50'
+            }`}
+          >
+            <span>প্রক্সি আবেদন (Proxy)</span>
+          </button>
+
+          <button
+            onClick={() => setFilterType('sensitive')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 active:scale-95 ${
+              filterType === 'sensitive'
+                ? 'bg-purple-800 text-white shadow-sm'
+                : 'bg-white text-purple-900 border border-purple-300 hover:bg-purple-50'
+            }`}
+          >
+            <ShieldAlert className="w-3.5 h-3.5" />
+            <span>নাবিলা / সংবেদনশীল কেস</span>
+          </button>
+        </div>
+
+        {/* Search Input */}
+        <div className="relative w-full md:min-w-[260px]">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="নাম, ট্র্যাকিং বা জেলা খুঁজুন..."
+            className="w-full bg-white border border-slate-300 rounded-xl pl-9 pr-3 py-2 text-base sm:text-xs text-slate-800 placeholder-slate-400 focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+            aria-label="মামলা অনুসন্ধান ইনপুট"
+          />
+        </div>
+      </div>
+
+      {/* Triage Cards Grid */}
+      <div className="space-y-3.5" role="feed" aria-label="ট্রায়াজ আবেদনসমূহের তালিকা">
+        {filteredCases.length > 0 ? (
+          filteredCases.map((c) => (
+            <TriageCard
+              key={c.id}
+              legalCase={c}
+              onSelect={(selected) => setSelectedCase(selected)}
+            />
+          ))
+        ) : (
+          <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-10 text-center space-y-3">
+            <CheckCircle className="w-10 h-10 text-emerald-500 mx-auto" />
+            <h3 className="text-base font-bold text-slate-800">
+              কোনো অমীমাংসিত আবেদন পাওয়া যায়নি
+            </h3>
+            <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              আপনার নির্বাচিত ফিল্টার বা সার্চ কোয়েরি অনুযায়ী কোনো রেকর্ড নেই। ফিল্টার পরিবর্তন করুন অথবা রিসেট করুন।
+            </p>
+            <button
+              onClick={() => {
+                setFilterType('all');
+                setSearchQuery('');
+              }}
+              className="text-xs font-bold text-emerald-700 bg-emerald-50 px-4 py-2 rounded-lg border border-emerald-200 hover:bg-emerald-100"
+            >
+              ফিল্টার রিসেট করুন
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Slide-out Detailed Modal Panel */}
+      {selectedCase && (
+        <CaseDetailModal
+          legalCase={selectedCase}
+          onClose={() => setSelectedCase(null)}
+          onUpdateCase={(updated) => {
+            setSelectedCase(updated);
+            loadCases();
+          }}
+        />
+      )}
+    </div>
+  );
+};
