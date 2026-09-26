@@ -99,7 +99,7 @@ export default function App() {
 
         {/* Role 5: Panel Lawyer View (Challenge B5) */}
         {currentRole === 'lawyer' && (
-          <PanelLawyerDashboard />
+          <PanelLawyerDashboard language={language} />
         )}
       </main>
 

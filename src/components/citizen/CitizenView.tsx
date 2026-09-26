@@ -142,7 +142,7 @@ export const CitizenView: React.FC<CitizenViewProps> = ({ language: propLanguage
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Top Banner: Navigation between Malek View and Standard View */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-3xl border border-slate-100/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
         <div className="flex items-center gap-2">
           <User className="w-5 h-5 text-emerald-700" />
           <span className="text-sm font-extrabold text-slate-900">
@@ -186,7 +186,7 @@ export const CitizenView: React.FC<CitizenViewProps> = ({ language: propLanguage
       {viewMode === 'malek' ? (
         <div className="space-y-6 animate-in fade-in duration-200">
           {/* Malek Welcome Banner with Voice Readout */}
-          <div className="bg-gradient-to-r from-emerald-800 via-teal-800 to-slate-900 text-white rounded-3xl p-6 sm:p-7 shadow-xl border border-emerald-700">
+          <div className="rounded-3xl bg-linear-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-6 sm:p-7 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-800/80">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
@@ -240,7 +240,7 @@ export const CitizenView: React.FC<CitizenViewProps> = ({ language: propLanguage
           {/* TWO MAIN LARGE-ICON BLOCKS AS SPECIFIED IN CHALLENGE A5 */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* ================= CARD 1: NEXT HEARING DATE ================= */}
-            <div className="rounded-3xl border-2 border-emerald-400 bg-white p-6 shadow-md hover:shadow-lg transition-all space-y-4">
+            <div className="rounded-3xl border border-slate-100/80 bg-white p-6 sm:p-7 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all space-y-5">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black uppercase tracking-wider text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full">
                   {language === 'bn' ? 'পরবর্তী শুনানির তারিখ' : 'Next Hearing Date'}
@@ -295,7 +295,7 @@ export const CitizenView: React.FC<CitizenViewProps> = ({ language: propLanguage
             </div>
 
             {/* ================= CARD 2: ASSIGNED LAWYER ================= */}
-            <div className="rounded-3xl border-2 border-teal-400 bg-white p-6 shadow-md hover:shadow-lg transition-all space-y-4">
+            <div className="rounded-3xl border border-slate-100/80 bg-white p-6 sm:p-7 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all space-y-5">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black uppercase tracking-wider text-teal-800 bg-teal-100 px-3 py-1 rounded-full">
                   {language === 'bn' ? 'নিযুক্ত সরকারি আইনজীবী' : 'Assigned Government Lawyer'}
@@ -357,7 +357,7 @@ export const CitizenView: React.FC<CitizenViewProps> = ({ language: propLanguage
           </div>
 
           {/* Large Visual Status Indicator for Illiterate Users */}
-          <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-4">
+          <div className="bg-white rounded-3xl border border-slate-100/80 p-6 sm:p-7 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-5">
             <h4 className="text-sm font-extrabold text-slate-900 uppercase tracking-wide flex items-center gap-2">
               <ThumbsUp className="w-4 h-4 text-emerald-700" />
               <span>{language === 'bn' ? 'আপনার মামলার বর্তমান সার্বিক অবস্থা' : 'Overall Current Status of Your Case'}</span>
@@ -408,7 +408,7 @@ export const CitizenView: React.FC<CitizenViewProps> = ({ language: propLanguage
         /* ============================================================== */
         <div className="space-y-6 animate-in fade-in duration-200">
           {/* Welcome banner */}
-          <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 text-white rounded-3xl p-6 shadow-xl border border-emerald-800">
+          <div className="rounded-3xl bg-linear-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-800/80">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="space-y-2">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30">
@@ -444,7 +444,7 @@ export const CitizenView: React.FC<CitizenViewProps> = ({ language: propLanguage
           </div>
 
           {/* Search Box */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+          <div className="bg-white rounded-3xl border border-slate-100/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-5 sm:p-6">
             <h3 className="text-base font-extrabold text-slate-900 mb-3 flex items-center gap-2">
               <Search className="w-5 h-5 text-emerald-700" />
               <span>{language === 'bn' ? 'আবেদনের সর্বশেষ অবস্থা অনুসন্ধান করুন' : 'Search Case Status by Tracking ID'}</span>
@@ -492,7 +492,7 @@ export const CitizenView: React.FC<CitizenViewProps> = ({ language: propLanguage
 
           {/* Searched Case Details */}
           {searchedCase && (
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden space-y-5 p-5 sm:p-6">
+            <div className="bg-white rounded-3xl border border-slate-100/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden space-y-5 p-5 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-3">
                 <div>
                   <div className="text-xs font-semibold text-slate-500">

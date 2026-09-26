@@ -9,6 +9,7 @@ import {
 } from '../../utils/storage';
 import { LegalCase, PriorityLevel, Language } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
+import { translateCategory, cleanPersonName } from '../../utils/translations';
 import { 
   Smartphone, 
   Mic, 
@@ -50,31 +51,47 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
 
   // Form State
   const [isProxy, setIsProxy] = useState<boolean>(true);
-  const [callerName, setCallerName] = useState<string>('মোছাঃ সালমা খাতুন');
-  const [callerPhone, setCallerPhone] = useState<string>('০১৭২৮-৯৪০৫১২');
-  const [callerRelation, setCallerRelation] = useState<string>('ইউপি সদস্যা (মহিলা মেম্বার)');
+  const [callerName, setCallerName] = useState<string>(
+    language === 'en' ? 'Mst. Salma Khatun' : 'মোছাঃ সালমা খাতুন'
+  );
+  const [callerPhone, setCallerPhone] = useState<string>(
+    language === 'en' ? '01728-940512' : '০১৭২৮-৯৪০৫১২'
+  );
+  const [callerRelation, setCallerRelation] = useState<string>(
+    language === 'en' ? 'Ward Representative' : 'ইউপি সদস্যা'
+  );
   const [callerNid, setCallerNid] = useState<string>('19842615480000452');
 
-  const [subjectName, setSubjectName] = useState<string>('মোছাঃ মরিয়ম বেগম');
-  const [subjectAge, setSubjectAge] = useState<string>('২৭');
-  const [subjectAddress, setSubjectAddress] = useState<string>('গ্রাম: বানিয়াচং, হবিগঞ্জ');
+  const [subjectName, setSubjectName] = useState<string>(
+    language === 'en' ? 'Mst. Morium Begum' : 'মোছাঃ মরিয়ম বেগম'
+  );
+  const [subjectAge, setSubjectAge] = useState<string>(language === 'en' ? '27' : '২৭');
+  const [subjectAddress, setSubjectAddress] = useState<string>(
+    language === 'en' ? 'Village: Baniachong, Habiganj' : 'গ্রাম: বানিয়াচং, হবিগঞ্জ'
+  );
   const [category, setCategory] = useState<string>('পারিবারিক সহিংসতা ও যৌতুক');
   const [priority, setPriority] = useState<PriorityLevel>('urgent');
   const [hasChildInDanger, setHasChildInDanger] = useState<boolean>(true);
   const [safetyRisk, setSafetyRisk] = useState<boolean>(true);
-  const [policeStation, setPoliceStation] = useState<string>('বানিয়াচং থানা');
-  const [district, setDistrict] = useState<string>('হবিগঞ্জ');
+  const [policeStation, setPoliceStation] = useState<string>(
+    language === 'en' ? 'Baniachong Police Station' : 'বানিয়াচং থানা'
+  );
+  const [district, setDistrict] = useState<string>(language === 'en' ? 'Habiganj' : 'হবিগঞ্জ');
   const [incidentDescription, setIncidentDescription] = useState<string>(
-    'ভুক্তভোগীকে স্বামী ও শ্বশুরবাড়ির লোকজন টানা দুদিন যাবত মারধর করছে। সাথে ৩ বছরের সন্তান আছে। চিকিৎসার সুযোগ দেওয়া হচ্ছে না। ইউডিসি উদ্যোক্তার কাছে কান্নাকাটি করে নিরাপত্তা ও আইনি সহায়তা চেয়েছেন।'
+    language === 'en'
+      ? 'Victim has been physically assaulted by husband and in-laws for the last two days over dowry. 3-year-old child is present and vulnerable. Seeking urgent protection.'
+      : 'ভুক্তভোগীকে স্বামী ও শ্বশুরবাড়ির লোকজন টানা দুদিন যাবত মারধর করছে। সাথে ৩ বছরের সন্তান আছে। চিকিৎসার সুযোগ দেওয়া হচ্ছে না। ইউডিসি উদ্যোক্তার কাছে কান্নাকাটি করে নিরাপত্তা ও আইনি সহায়তা চেয়েছেন।'
   );
   const [desiredRelief, setDesiredRelief] = useState<string>(
-    'অবিলম্বে আইনি নিরাপত্তা, সন্তানসহ আশ্রয় এবং সরকারি খরচে বিজ্ঞ প্যানেল আইনজীবী নিয়োগ।'
+    language === 'en'
+      ? 'Immediate legal protection, emergency shelter with child, and government panel lawyer assignment.'
+      : 'অবিলম্বে আইনি নিরাপত্তা, সন্তানসহ আশ্রয় এবং সরকারি খরচে বিজ্ঞ প্যানেল আইনজীবী নিয়োগ।'
   );
 
   // Audio Voice Recording Simulation for illiterate citizens
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [audioRecorded, setAudioRecorded] = useState<boolean>(true);
-  const [recordedDuration, setRecordedDuration] = useState<string>('০১:১৫');
+  const [recordedDuration, setRecordedDuration] = useState<string>(language === 'en' ? '01:15' : '০১:১৫');
 
   // Submission feedback
   const [saveToast, setSaveToast] = useState<{ message: string; isOffline: boolean } | null>(null);
@@ -83,75 +100,75 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
   const handleAutoFill = (type: 'violence' | 'land' | 'maintenance') => {
     if (type === 'violence') {
       setIsProxy(true);
-      setCallerName(language === 'bn' ? 'রোকসানা আক্তার' : 'Roksana Akhter');
-      setCallerPhone('০১৮১৯-৩৩৪২৫১');
-      setCallerRelation(language === 'bn' ? 'প্রতিবেশী ও স্থানীয় সাহায্যকারী' : 'Neighbor & Local Helper');
-      setSubjectName(language === 'bn' ? 'ফরিদা পারভীন' : 'Farida Parveen');
-      setSubjectAge('২২');
-      setSubjectAddress(language === 'bn' ? 'গ্রাম: চর কলমি, তজুমদ্দিন, ভোলা' : 'Char Kolmi, Tazumuddin, Bhola');
+      setCallerName(language === 'en' ? 'Roksana Akhter' : 'রোকসানা আক্তার');
+      setCallerPhone(language === 'en' ? '01819-334251' : '০১৮১৯-৩৩৪২৫১');
+      setCallerRelation(language === 'en' ? 'Neighbor & Local Helper' : 'প্রতিবেশী ও স্থানীয় সাহায্যকারী');
+      setSubjectName(language === 'en' ? 'Farida Parveen' : 'ফরিদা পারভীন');
+      setSubjectAge(language === 'en' ? '22' : '২২');
+      setSubjectAddress(language === 'en' ? 'Village: Char Kolmi, Tazumuddin, Bhola' : 'গ্রাম: চর কলমি, তজুমদ্দিন, ভোলা');
       setCategory('পারিবারিক সহিংসতা ও যৌতুক');
       setPriority('urgent');
       setHasChildInDanger(true);
       setSafetyRisk(true);
-      setPoliceStation(language === 'bn' ? 'তজুমদ্দিন থানা' : 'Tazumuddin PS');
-      setDistrict(language === 'bn' ? 'ভোলা' : 'Bhola');
+      setPoliceStation(language === 'en' ? 'Tazumuddin Police Station' : 'তজুমদ্দিন থানা');
+      setDistrict(language === 'en' ? 'Bhola' : 'ভোলা');
       setIncidentDescription(
-        language === 'bn'
-          ? 'যৌতুকের জন্য ভুক্তভোগীকে ধারালো অস্ত্র দিয়ে জখম করা হয়েছে। স্থানীয় হাসপাতালে প্রাথমিক চিকিৎসা দেওয়া হয়েছে। বর্তমানে প্রতিবেশীর আশ্রয়ে আছেন। অপরাধী পক্ষ হুমকি দিচ্ছে।'
-          : 'Victim was injured with sharp weapons over dowry demands. First aid received at local hospital. Currently taking refuge with a neighbor. Perpetrators are threatening.'
+        language === 'en'
+          ? 'Victim was injured with sharp weapons over dowry demands. First aid received at local hospital. Currently taking refuge with a neighbor. Perpetrators are threatening.'
+          : 'যৌতুকের জন্য ভুক্তভোগীকে ধারালো অস্ত্র দিয়ে জখম করা হয়েছে। স্থানীয় হাসপাতালে প্রাথমিক চিকিৎসা দেওয়া হয়েছে। বর্তমানে প্রতিবেশীর আশ্রয়ে আছেন। অপরাধী পক্ষ হুমকি দিচ্ছে।'
       );
       setDesiredRelief(
-        language === 'bn'
-          ? 'নিরাপত্তা বিধান, ভিকটিম সাপোর্ট সেন্টারে প্রেরণ ও ফৌজদারি মামলা পরিচালনায় আইনি সহায়তা।'
-          : 'Security protection, victim support shelter, and government legal aid for criminal prosecution.'
+        language === 'en'
+          ? 'Security protection, victim support shelter, and government legal aid for criminal prosecution.'
+          : 'নিরাপত্তা বিধান, ভিকটিম সাপোর্ট সেন্টারে প্রেরণ ও ফৌজদারি মামলা পরিচালনায় আইনি সহায়তা।'
       );
     } else if (type === 'land') {
       setIsProxy(false);
-      setCallerName(language === 'bn' ? 'মোঃ আব্দুর রহিম' : 'Md. Abdur Rahim');
-      setCallerPhone('০১৭৩১-৮৯৪০১২');
-      setCallerRelation(language === 'bn' ? 'ভুক্তভোগী নিজে' : 'Victim Self');
-      setSubjectName(language === 'bn' ? 'মোঃ আব্দুর রহিম' : 'Md. Abdur Rahim');
-      setSubjectAge('৬৫');
-      setSubjectAddress(language === 'bn' ? 'গ্রাম: শিবপুর, ভৈরব, কিশোরগঞ্জ' : 'Shivpur, Bhairab, Kishoreganj');
+      setCallerName(language === 'en' ? 'Md. Abdur Rahim' : 'মোঃ আব্দুর রহিম');
+      setCallerPhone(language === 'en' ? '01731-894012' : '০১৭৩১-৮৯৪০১২');
+      setCallerRelation(language === 'en' ? 'Victim Directly' : 'ভুক্তভোগী নিজে');
+      setSubjectName(language === 'en' ? 'Md. Abdur Rahim' : 'মোঃ আব্দুর রহিম');
+      setSubjectAge(language === 'en' ? '65' : '৬৫');
+      setSubjectAddress(language === 'en' ? 'Village: Shivpur, Bhairab, Kishoreganj' : 'গ্রাম: শিবপুর, ভৈরব, কিশোরগঞ্জ');
       setCategory('জমি জবরদখল ও এতিমের সম্পত্তি বেদখল');
       setPriority('medium');
       setHasChildInDanger(false);
       setSafetyRisk(false);
-      setPoliceStation(language === 'bn' ? 'ভৈরব থানা' : 'Bhairab PS');
-      setDistrict(language === 'bn' ? 'কিশোরগঞ্জ' : 'Kishoreganj');
+      setPoliceStation(language === 'en' ? 'Bhairab Police Station' : 'ভৈরব থানা');
+      setDistrict(language === 'en' ? 'Kishoreganj' : 'কিশোরগঞ্জ');
       setIncidentDescription(
-        language === 'bn'
-          ? 'পৈতৃক ভিটার ২০ শতাংশ জমি স্থানীয় প্রভাবশালী পক্ষ জাল কাগজ তৈরি করে জবরদখল করেছে। বৃদ্ধ বয়সে আদালতে বারবার গিয়ে খরচ বহন করার সামর্থ্য নেই।'
-          : 'Local influential group forged deeds to usurp 20 decimals of ancestral homestead land. In old age, cannot afford repeated court travel and expenses.'
+        language === 'en'
+          ? 'Local influential group forged deeds to usurp 20 decimals of ancestral homestead land. In old age, cannot afford repeated court travel and expenses.'
+          : 'পৈতৃক ভিটার ২০ শতাংশ জমি স্থানীয় প্রভাবশালী পক্ষ জাল কাগজ তৈরি করে জবরদখল করেছে। বৃদ্ধ বয়সে আদালতে বারবার গিয়ে খরচ বহন করার সামর্থ্য নেই।'
       );
       setDesiredRelief(
-        language === 'bn'
-          ? 'ডিএলএও কার্যালয় হতে এডিআর (বিকল্প বিরোধ নিষ্পত্তি) তলব ও দেওয়ানি সহায়তা।'
-          : 'Call for ADR mediation from DLAO office and civil case assistance.'
+        language === 'en'
+          ? 'Call for ADR mediation from DLAO office and civil case assistance.'
+          : 'ডিএলএও কার্যালয় হতে এডিআর (বিকল্প বিরোধ নিষ্পত্তি) তলব ও দেওয়ানি সহায়তা।'
       );
     } else {
       setIsProxy(true);
-      setCallerName(language === 'bn' ? 'মোছাঃ খাদিজা বেগম' : 'Mst. Khadija Begum');
-      setCallerPhone('০১৬১১-৯৮৭৬৫৪');
-      setCallerRelation(language === 'bn' ? 'মা' : 'Mother');
-      setSubjectName(language === 'bn' ? 'আফসানা আক্তার' : 'Afsana Akhter');
-      setSubjectAge('১৯');
-      setSubjectAddress(language === 'bn' ? 'কালীগঞ্জ, ঝিনাইদহ' : 'Kaliganj, Jhenaidah');
+      setCallerName(language === 'en' ? 'Mst. Khadija Begum' : 'মোছাঃ খাদিজা বেগম');
+      setCallerPhone(language === 'en' ? '01611-987654' : '০১৬১১-৯৮৭৬৫৪');
+      setCallerRelation(language === 'en' ? 'Mother' : 'মা');
+      setSubjectName(language === 'en' ? 'Afsana Akhter' : 'আফসানা আক্তার');
+      setSubjectAge(language === 'en' ? '19' : '১৯');
+      setSubjectAddress(language === 'en' ? 'Kaliganj, Jhenaidah' : 'কালীগঞ্জ, ঝিনাইদহ');
       setCategory('দেনমোহর ও সন্তানের ভরণপোষণ');
       setPriority('routine');
       setHasChildInDanger(false);
       setSafetyRisk(false);
-      setPoliceStation(language === 'bn' ? 'কালীগঞ্জ থানা' : 'Kaliganj PS');
-      setDistrict(language === 'bn' ? 'ঝিনাইদহ' : 'Jhenaidah');
+      setPoliceStation(language === 'en' ? 'Kaliganj Police Station' : 'কালীগঞ্জ থানা');
+      setDistrict(language === 'en' ? 'Jhenaidah' : 'ঝিনাইদহ');
       setIncidentDescription(
-        language === 'bn'
-          ? 'স্বামী গত এক বছর ধরে কোনো খরচ দিচ্ছেন না। তালাকের মৌখিক হুমকি দিয়ে দ্বিতীয় বিবাহ করেছেন। কোনো দেনমোহর পরিশোধ করেননি।'
-          : 'Husband has not provided living costs for a year. Married second wife with verbal divorce threats. Has not paid dower.'
+        language === 'en'
+          ? 'Husband has not provided living costs for a year. Married second wife with verbal divorce threats. Has not paid dower.'
+          : 'স্বামী গত এক বছর ধরে কোনো খরচ দিচ্ছেন না। তালাকের মৌখিক হুমকি দিয়ে দ্বিতীয় বিবাহ করেছেন। কোনো দেনমোহর পরিশোধ করেননি।'
       );
       setDesiredRelief(
-        language === 'bn'
-          ? 'পারিবারিক আদালতে দেনমোহর ও খোরপোশ মোকদ্দমার জন্য সরকারি লিগ্যাল এইড।'
-          : 'Government legal aid for dower and maintenance suit in family court.'
+        language === 'en'
+          ? 'Government legal aid for dower and maintenance suit in family court.'
+          : 'পারিবারিক আদালতে দেনমোহর ও খোরপোশ মোকদ্দমার জন্য সরকারি লিগ্যাল এইড।'
       );
     }
   };
@@ -166,36 +183,36 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
       trackingNumber,
       createdAt: new Date().toISOString(),
       timeAgo: isOnline 
-        ? (language === 'bn' ? 'এইমাত্র' : 'Just now')
-        : (language === 'bn' ? 'ডিভাইসে অপেক্ষমাণ' : 'Pending on device'),
+        ? (language === 'en' ? 'Just now' : 'এইমাত্র')
+        : (language === 'en' ? 'Pending on device' : 'ডিভাইসে অপেক্ষমাণ'),
       priority,
       category,
       aiSummary: generateAISummary(category, hasChildInDanger, priority, incidentDescription),
       aiConfidenceScore: 95,
       aiSuggestedAction: priority === 'urgent'
-        ? (language === 'bn' ? 'জরুরি পুলিশ প্রোটেকশন ও বিজ্ঞ ডিএলএও কর্মকর্তার তাৎক্ষণিক তলব' : 'Immediate police protection and urgent DLAO intervention')
-        : (language === 'bn' ? 'এডিআর বৈঠক বা প্যানেল আইনজীবী মনোনয়ন' : 'ADR mediation or panel lawyer nomination'),
+        ? (language === 'en' ? 'Immediate police protection and urgent DLAO intervention' : 'জরুরি পুলিশ প্রোটেকশন ও বিজ্ঞ ডিএলএও কর্মকর্তার তাৎক্ষণিক তলব')
+        : (language === 'en' ? 'ADR mediation or panel lawyer nomination' : 'এডিআর বৈঠক বা প্যানেল আইনজীবী মনোনয়ন'),
       channel: 'udc',
-      channelLabel: language === 'bn' ? 'ইউনিয়ন ডিজিটাল সেন্টার' : 'Union Digital Center (UDC)',
+      channelLabel: language === 'en' ? 'Union Digital Center' : 'ইউনিয়ন ডিজিটাল সেন্টার',
       status: 'new',
       isOverdue: false,
       provenance: {
-        callerName: callerName.trim() || (language === 'bn' ? 'অজ্ঞাত সাহায্যকারী' : 'Anonymous Helper'),
-        callerPhone: callerPhone.trim() || '০১৭০০-০০০০০০',
+        callerName: callerName.trim() || (language === 'en' ? 'Anonymous Helper' : 'অজ্ঞাত সাহায্যকারী'),
+        callerPhone: callerPhone.trim() || (language === 'en' ? '01700-000000' : '০১৭০০-০০০০০০'),
         callerNid: callerNid.trim() || '19902615480000000',
         callerVerification: 'verified',
-        callerRelation: isProxy ? callerRelation : (language === 'bn' ? 'ভুক্তভোগী নিজে' : 'Victim Self'),
-        subjectName: subjectName.trim() || (language === 'bn' ? 'অজ্ঞাত ভুক্তভোগী' : 'Anonymous Subject'),
+        callerRelation: isProxy ? callerRelation : (language === 'en' ? 'Victim Directly' : 'ভুক্তভোগী নিজে'),
+        subjectName: subjectName.trim() || (language === 'en' ? 'Anonymous Subject' : 'অজ্ঞাত ভুক্তভোগী'),
         subjectAge: subjectAge ? parseInt(subjectAge) : 25,
         subjectGender: 'নারী',
         subjectVerification: isProxy ? 'unconfirmed' : 'verified',
-        subjectAddress: subjectAddress.trim() || (language === 'bn' ? 'ইউনিয়ন ডিজিটাল সেন্টার এলাকা' : 'UDC Jurisdiction Area'),
+        subjectAddress: subjectAddress.trim() || (language === 'en' ? 'UDC Jurisdiction Area' : 'ইউনিয়ন ডিজিটাল সেন্টার এলাকা'),
         isProxy,
         proxyConsentObtained: true,
         safetyAlert: safetyRisk 
-          ? (language === 'bn' 
-              ? 'ভুক্তভোগীর জীবন ও নিরাপত্তার চরম ঝুঁকি রয়েছে। সরাসরি প্রকাশ্যে যোগাযোগ নিষিদ্ধ।' 
-              : 'Severe safety risk to victim. Direct public contact is prohibited.')
+          ? (language === 'en' 
+              ? 'Severe safety risk to victim. Direct public contact is prohibited.' 
+              : 'ভুক্তভোগীর জীবন ও নিরাপত্তার চরম ঝুঁকি রয়েছে। সরাসরি প্রকাশ্যে যোগাযোগ নিষিদ্ধ।')
           : undefined,
       },
       incidentDescription,
@@ -203,8 +220,8 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
       hasChildInDanger,
       policeStation,
       district,
-      upazila: district ? `${district} সদর` : (language === 'bn' ? 'উপজেলা পরিষদ' : 'Upazila Parishad'),
-      unionParishad: language === 'bn' ? 'ইউনিয়ন ডিজিটাল সেন্টার অধিক্ষেত্র' : 'Union Digital Center Jurisdiction',
+      upazila: district ? `${district} Sadar` : (language === 'en' ? 'Upazila Parishad' : 'উপজেলা পরিষদ'),
+      unionParishad: language === 'en' ? 'Union Digital Center Jurisdiction' : 'ইউনিয়ন ডিজিটাল সেন্টার অধিক্ষেত্র',
       audioDuration: audioRecorded ? recordedDuration : undefined,
       audioTranscript: audioRecorded ? incidentDescription.slice(0, 80) + '...' : undefined,
       evidenceFiles: [
@@ -217,9 +234,9 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
       // OFFLINE STATE: Save to mock localStorage queue
       addToOfflineQueue(newCase);
       setSaveToast({
-        message: language === 'bn'
-          ? `আবেদনটি ইন্টারনেট ছাড়াই আপনার ডিভাইসে নিরাপদে সংরক্ষিত হয়েছে! (ট্র্যাকিং: ${trackingNumber})`
-          : `Application saved safely on your device without internet! (Tracking: ${trackingNumber})`,
+        message: language === 'en'
+          ? `Application saved safely on your device without internet! (Tracking: ${trackingNumber})`
+          : `আবেদনটি ইন্টারনেট ছাড়াই আপনার ডিভাইসে নিরাপদে সংরক্ষিত হয়েছে! (ট্র্যাকিং: ${trackingNumber})`,
         isOffline: true,
       });
     } else {
@@ -227,9 +244,9 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
       const existing = getStoredCases();
       saveCases([newCase, ...existing]);
       setSaveToast({
-        message: language === 'bn'
-          ? `আবেদনটি কেন্দ্রীয় ডিএলএও ড্যাশবোর্ডে সফলভাবে প্রেরিত হয়েছে! (ট্র্যাকিং: ${trackingNumber})`
-          : `Application successfully submitted to central DLAO dashboard! (Tracking: ${trackingNumber})`,
+        message: language === 'en'
+          ? `Application successfully submitted to central DLAO dashboard! (Tracking: ${trackingNumber})`
+          : `আবেদনটি কেন্দ্রীয় ডিএলএও ড্যাশবোর্ডে সফলভাবে প্রেরিত হয়েছে! (ট্র্যাকিং: ${trackingNumber})`,
         isOffline: false,
       });
     }
@@ -246,23 +263,23 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
     desc: string
   ) => {
     if (prio === 'urgent' && child) {
-      return language === 'bn'
-        ? 'শারীরিক নির্যাতন চলমান ও কোলে শিশু বিপন্ন'
-        : 'Ongoing violence + Child at risk';
+      return language === 'en'
+        ? 'Ongoing violence + Child at risk'
+        : 'শারীরিক নির্যাতন চলমান ও কোলে শিশু বিপন্ন';
     }
     if (prio === 'urgent') {
-      return language === 'bn'
-        ? 'চরম শারীরিক ঝুঁকি ও তাৎক্ষণিক উদ্ধার প্রয়োজন'
-        : 'Critical threat + Physical danger';
+      return language === 'en'
+        ? 'Critical threat + Physical danger'
+        : 'চরম শারীরিক ঝুঁকি ও তাৎক্ষণিক উদ্ধার প্রয়োজন';
     }
     if (cat.includes('জমি') || cat.includes('Land')) {
-      return language === 'bn'
-        ? 'বসতভিটা বেদখল ও দেওয়ানি প্রতিকার প্রার্থনা'
-        : 'Land encroachment + Marginalized family';
+      return language === 'en'
+        ? 'Land encroachment + Marginalized family'
+        : 'বসতভিটা বেদখল ও দেওয়ানি প্রতিকার প্রার্থনা';
     }
-    return language === 'bn'
-      ? `${cat} (আইনি সহায়তা প্রার্থনা)`
-      : `${cat} (Legal counsel requested)`;
+    return language === 'en'
+      ? `${translateCategory(cat, 'en')} - Legal counsel requested`
+      : `${translateCategory(cat, 'bn')} - আইনি সহায়তা প্রার্থনা`;
   };
 
   const offlineQueue = getOfflineQueue();
@@ -270,15 +287,16 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Traffic Light Sync Indicator */}
-      <section aria-label={language === 'bn' ? 'নেটওয়ার্ক সিঙ্ক ট্রাফিক লাইট স্ট্যাটাস' : 'Network sync traffic light status'}>
+      <section aria-label={language === 'en' ? 'Network sync traffic light status' : 'নেটওয়ার্ক সিঙ্ক ট্রাফিক লাইট স্ট্যাটাস'}>
         <TrafficLightSyncIndicator
           isOnline={isOnline}
           showQueueDetails={true}
+          language={language}
         />
       </section>
 
       {/* Hero Banner: UDC Assisted Intake Orientation */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
           <div className="w-12 h-12 rounded-xl bg-emerald-700 text-white flex items-center justify-center shrink-0 shadow-md">
             <Smartphone className="w-6 h-6" />
@@ -286,16 +304,16 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-lg sm:text-xl font-black text-slate-900">
-                {language === 'bn' ? 'ইউডিসি সহকারী ইনটেক ফর্ম' : 'UDC Assisted Intake Form'}
+                {language === 'en' ? 'UDC Assisted Intake Form' : 'ইউডিসি সহকারী ইনটেক ফর্ম'}
               </h2>
               <span className="text-[11px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-300">
-                {language === 'bn' ? 'অফলাইন-ফার্স্ট' : 'Offline-First'}
+                {language === 'en' ? 'Offline-First' : 'অফলাইন-ফার্স্ট'}
               </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-600 mt-0.5">
-              {language === 'bn'
-                ? 'নিরক্ষর বা প্রান্তিক জনগোষ্ঠীর পক্ষে ডিজিটাল সেন্টারের উদ্যোক্তা কর্তৃক সহজে অভিযোগ লিপিবদ্ধকরণ।'
-                : 'Assisted complaint intake by Union Digital Center entrepreneurs for citizens.'}
+              {language === 'en'
+                ? 'Assisted complaint intake by Union Digital Center entrepreneurs for citizens.'
+                : 'নিরক্ষর বা প্রান্তিক জনগোষ্ঠীর পক্ষে ডিজিটাল সেন্টারের উদ্যোক্তা কর্তৃক সহজে অভিযোগ লিপিবদ্ধকরণ।'}
             </p>
           </div>
         </div>
@@ -304,31 +322,31 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex flex-wrap items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
             <span className="text-[11px] font-bold text-slate-500 px-1.5">
-              {language === 'bn' ? 'নমুনা পূরণ:' : 'Demo Fill:'}
+              {language === 'en' ? 'Demo Fill:' : 'নমুনা পূরণ:'}
             </span>
             <button
               type="button"
               onClick={() => handleAutoFill('violence')}
               className="px-2.5 py-1.5 bg-white hover:bg-red-50 text-red-700 font-bold text-xs rounded-lg shadow-2xs border border-slate-200 transition active:scale-95 cursor-pointer"
-              title={language === 'bn' ? 'জরুরি পারিবারিক সহিংসতা ডেমো' : 'Urgent domestic violence demo'}
+              title={language === 'en' ? 'Urgent domestic violence demo' : 'জরুরি পারিবারিক সহিংসতা ডেমো'}
             >
-              {language === 'bn' ? 'সহিংসতা' : 'Violence'}
+              {language === 'en' ? 'Violence' : 'সহিংসতা'}
             </button>
             <button
               type="button"
               onClick={() => handleAutoFill('land')}
               className="px-2.5 py-1.5 bg-white hover:bg-amber-50 text-amber-800 font-bold text-xs rounded-lg shadow-2xs border border-slate-200 transition active:scale-95 cursor-pointer"
-              title={language === 'bn' ? 'জমিজমা বিরোধ ডেমো' : 'Land dispute demo'}
+              title={language === 'en' ? 'Land dispute demo' : 'জমিজমা বিরোধ ডেমো'}
             >
-              {language === 'bn' ? 'জমিজমা' : 'Land'}
+              {language === 'en' ? 'Land' : 'জমিজমা'}
             </button>
             <button
               type="button"
               onClick={() => handleAutoFill('maintenance')}
               className="px-2.5 py-1.5 bg-white hover:bg-blue-50 text-blue-800 font-bold text-xs rounded-lg shadow-2xs border border-slate-200 transition active:scale-95 cursor-pointer"
-              title={language === 'bn' ? 'ভরণপোষণ দাবি ডেমো' : 'Maintenance claim demo'}
+              title={language === 'en' ? 'Maintenance claim demo' : 'ভরণপোষণ দাবি ডেমো'}
             >
-              {language === 'bn' ? 'খোরপোশ' : 'Maintenance'}
+              {language === 'en' ? 'Maintenance' : 'খোরপোশ'}
             </button>
           </div>
 
@@ -345,8 +363,8 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
             {!isOnline ? <WifiOff className="w-3.5 h-3.5" /> : <Wifi className="w-3.5 h-3.5" />}
             <span>
               {!isOnline 
-                ? (language === 'bn' ? 'অফলাইন মোড' : 'Offline Mode') 
-                : (language === 'bn' ? 'অনলাইন মোড' : 'Online Mode')}
+                ? (language === 'en' ? 'Offline Mode' : 'অফলাইন মোড') 
+                : (language === 'en' ? 'Online Mode' : 'অনলাইন মোড')}
             </span>
           </button>
         </div>
@@ -376,7 +394,7 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
               onClick={onNavigateToDashboard}
               className="text-xs bg-black/10 hover:bg-black/20 px-3 py-1 rounded-lg shrink-0 underline cursor-pointer"
             >
-              {language === 'bn' ? 'ড্যাশবোর্ডে দেখুন' : 'View Dashboard'}
+              {language === 'en' ? 'View Dashboard' : 'ড্যাশবোর্ডে দেখুন'}
             </button>
           )}
         </div>
@@ -385,7 +403,7 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
       {/* Main Intake Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Step 1: Voice Recording Simulation (Crucial for Illiterate Users) */}
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50/60 rounded-2xl border border-blue-200 p-5 shadow-xs space-y-3">
+        <div className="bg-gradient-to-br from-blue-50/70 to-indigo-50/50 rounded-3xl border border-blue-100 p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center">
@@ -393,18 +411,18 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
               </div>
               <div>
                 <h3 className="text-sm font-bold text-blue-950">
-                  {language === 'bn' ? 'ভয়েস জবানবন্দি গ্রহণ' : 'Voice Statement Recording'}
+                  {language === 'en' ? 'Voice Statement Recording' : 'ভয়েস জবানবন্দি গ্রহণ'}
                 </h3>
                 <p className="text-xs text-blue-700">
-                  {language === 'bn'
-                    ? 'কথা রেকর্ড করলে এআই স্বয়ংক্রিয়ভাবে টেক্সট ও সারাংশ প্রস্তুত করবে।'
-                    : 'Recording audio enables AI transcription and automated summary.'}
+                  {language === 'en'
+                    ? 'Recording audio enables AI transcription and automated summary.'
+                    : 'কথা রেকর্ড করলে এআই স্বয়ংক্রিয়ভাবে টেক্সট ও সারাংশ প্রস্তুত করবে।'}
                 </p>
               </div>
             </div>
             {audioRecorded && (
               <span className="text-xs font-mono font-bold bg-white text-blue-800 px-2 py-0.5 rounded-md border border-blue-200">
-                {recordedDuration} {language === 'bn' ? 'রেকর্ডকৃত' : 'Recorded'}
+                {recordedDuration} {language === 'en' ? 'Recorded' : 'রেকর্ডকৃত'}
               </span>
             )}
           </div>
@@ -426,30 +444,30 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
                     ? 'bg-emerald-600 text-white'
                     : 'bg-blue-600 text-white hover:bg-blue-700'
                 }`}
-                aria-label={isRecording ? (language === 'bn' ? 'রেকর্ডিং বন্ধ করুন' : 'Stop recording') : (language === 'bn' ? 'রেকর্ডিং শুরু করুন' : 'Start recording')}
+                aria-label={isRecording ? (language === 'en' ? 'Stop recording' : 'রেকর্ডিং বন্ধ করুন') : (language === 'en' ? 'Start recording' : 'রেকর্ডিং শুরু করুন')}
               >
                 {isRecording ? (
                   <>
                     <MicOff className="w-4 h-4" />
-                    <span>{language === 'bn' ? 'রেকর্ডিং চলছে (থামান)' : 'Recording... (Stop)'}</span>
+                    <span>{language === 'en' ? 'Recording... (Stop)' : 'রেকর্ডিং চলছে (থামান)'}</span>
                   </>
                 ) : audioRecorded ? (
                   <>
                     <CheckCircle2 className="w-4 h-4" />
-                    <span>{language === 'bn' ? 'ভয়েস রেকর্ড সম্পন্ন (আবার করুন)' : 'Recording Complete (Redo)'}</span>
+                    <span>{language === 'en' ? 'Recording Complete (Redo)' : 'ভয়েস রেকর্ড সম্পন্ন (আবার করুন)'}</span>
                   </>
                 ) : (
                   <>
                     <Mic className="w-4 h-4" />
-                    <span>{language === 'bn' ? 'রেকর্ড শুরু করুন' : 'Start Recording'}</span>
+                    <span>{language === 'en' ? 'Start Recording' : 'রেকর্ড শুরু করুন'}</span>
                   </>
                 )}
               </button>
 
               <span className="text-xs text-slate-500 font-medium">
                 {isRecording 
-                  ? (language === 'bn' ? 'উদ্যোক্তার মাইকে কথা শুনছে...' : 'Listening via microphone...') 
-                  : (language === 'bn' ? 'মাইক্রোফোন প্রস্তুত' : 'Microphone Ready')}
+                  ? (language === 'en' ? 'Listening via microphone...' : 'উদ্যোক্তার মাইকে কথা শুনছে...') 
+                  : (language === 'en' ? 'Microphone Ready' : 'মাইক্রোফোন প্রস্তুত')}
               </span>
             </div>
 
@@ -469,12 +487,12 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
         </div>
 
         {/* Step 2: Provenance Separation (Caller vs Subject) */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
+        <div className="bg-white rounded-3xl border border-slate-100/80 p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-5">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div className="flex items-center gap-2">
               <Users className="w-5 h-5 text-emerald-700" />
               <h3 className="text-base font-extrabold text-slate-900">
-                {language === 'bn' ? 'প্রোভেন্যান্স যাচাইকরণ' : 'Provenance Verification'}
+                {language === 'en' ? 'Provenance Verification' : 'প্রোভেন্যান্স যাচাইকরণ'}
               </h3>
             </div>
             
@@ -487,7 +505,7 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
                   !isProxy ? 'bg-white text-emerald-800 shadow-2xs' : 'text-slate-600'
                 }`}
               >
-                {language === 'bn' ? 'ভুক্তভোগী নিজে' : 'Victim Directly'}
+                {language === 'en' ? 'Victim Directly' : 'ভুক্তভোগী নিজে'}
               </button>
               <button
                 type="button"
@@ -496,7 +514,7 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
                   isProxy ? 'bg-emerald-700 text-white shadow-2xs' : 'text-slate-600'
                 }`}
               >
-                {language === 'bn' ? 'প্রতিনিধি / প্রক্সি' : 'Proxy / Representative'}
+                {language === 'en' ? 'Proxy / Representative' : 'প্রতিনিধি / প্রক্সি'}
               </button>
             </div>
           </div>
@@ -506,19 +524,19 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-600 inline-block" />
-                {language === 'bn'
-                  ? '১. যিনি কথা বলছেন (রিপোর্টার) — বায়োমেট্রিক ও সিম যাচাইকৃত'
-                  : '1. Caller / Reporter — Biometric & SIM Verified'}
+                {language === 'en'
+                  ? '1. Caller / Reporter Details — Biometric & SIM Verified'
+                  : '১. যিনি কথা বলছেন (রিপোর্টার) — বায়োমেট্রিক ও সিম যাচাইকৃত'}
               </span>
               <span className="text-[11px] font-bold bg-emerald-700 text-white px-2 py-0.5 rounded shadow-2xs">
-                {language === 'bn' ? 'যাচাইকৃত' : 'Verified'}
+                {language === 'en' ? 'Verified' : 'যাচাইকৃত'}
               </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  {language === 'bn' ? 'কথা বলিয়ে ব্যক্তির নাম:' : 'Caller Name:'}
+                  {language === 'en' ? 'Caller Name:' : 'কথা বলিয়ে ব্যক্তির নাম:'}
                 </label>
                 <input
                   type="text"
@@ -526,13 +544,13 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
                   value={callerName}
                   onChange={(e) => setCallerName(e.target.value)}
                   className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-semibold text-slate-900 focus:outline-hidden focus:border-emerald-600"
-                  placeholder={language === 'bn' ? 'যেমন: মোছাঃ সালমা খাতুন' : 'e.g. Salma Khatun'}
+                  placeholder={language === 'en' ? 'e.g. Salma Khatun' : 'যেমন: মোছাঃ সালমা খাতুন'}
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  {language === 'bn' ? 'মোবাইল নম্বর (সিম যাচাইকৃত):' : 'Mobile Number (SIM Verified):'}
+                  {language === 'en' ? 'Mobile Number (SIM Verified):' : 'মোবাইল নম্বর (সিম যাচাইকৃত):'}
                 </label>
                 <input
                   type="tel"
@@ -540,20 +558,20 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
                   value={callerPhone}
                   onChange={(e) => setCallerPhone(e.target.value)}
                   className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-semibold text-slate-900 focus:outline-hidden focus:border-emerald-600"
-                  placeholder="০১৭**-******"
+                  placeholder={language === 'en' ? '017**-******' : '০১৭**-******'}
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  {language === 'bn' ? 'ভুক্তভোগীর সাথে সম্পর্ক:' : 'Relationship to Subject:'}
+                  {language === 'en' ? 'Relationship to Subject:' : 'ভুক্তভোগীর সাথে সম্পর্ক:'}
                 </label>
                 <input
                   type="text"
                   value={callerRelation}
                   onChange={(e) => setCallerRelation(e.target.value)}
                   className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-hidden focus:border-emerald-600"
-                  placeholder={language === 'bn' ? 'যেমন: ইউপি মেম্বার / প্রতিবেশী / অভিভাবক' : 'e.g. UP Member / Neighbor / Guardian'}
+                  placeholder={language === 'en' ? 'e.g. UP Member / Neighbor / Guardian' : 'যেমন: ইউপি মেম্বার / প্রতিবেশী / অভিভাবক'}
                 />
               </div>
             </div>
@@ -564,19 +582,19 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" />
-                {language === 'bn' ? '২. যার বিষয়ে অভিযোগ (ভুক্তভোগী)' : '2. Subject / Victim Details'}
+                {language === 'en' ? '2. Subject / Victim in Need:' : '২. যার বিষয়ে অভিযোগ (ভুক্তভোগী)'}
               </span>
               <span className="text-[11px] font-bold bg-amber-500 text-slate-950 px-2 py-0.5 rounded shadow-2xs">
                 {isProxy 
-                  ? (language === 'bn' ? 'অনিশ্চিত' : 'Unconfirmed') 
-                  : (language === 'bn' ? 'যাচাইকৃত' : 'Verified')}
+                  ? (language === 'en' ? 'Unconfirmed' : 'অনিশ্চিত') 
+                  : (language === 'en' ? 'Verified' : 'যাচাইকৃত')}
               </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  {language === 'bn' ? 'ভুক্তভোগীর পুরো নাম:' : 'Victim Full Name:'}
+                  {language === 'en' ? 'Subject Full Name:' : 'ভুক্তভোগীর পুরো নাম:'}
                 </label>
                 <input
                   type="text"
@@ -584,26 +602,26 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
                   value={subjectName}
                   onChange={(e) => setSubjectName(e.target.value)}
                   className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-semibold text-slate-900 focus:outline-hidden focus:border-emerald-600"
-                  placeholder={language === 'bn' ? 'যেমন: মোছাঃ মরিয়ম বেগম' : 'e.g. Morium Begum'}
+                  placeholder={language === 'en' ? 'e.g. Morium Begum' : 'যেমন: মোছাঃ মরিয়ম বেগম'}
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  {language === 'bn' ? 'আনুমানিক বয়স:' : 'Approximate Age:'}
+                  {language === 'en' ? 'Approximate Age:' : 'আনুমানিক বয়স:'}
                 </label>
                 <input
                   type="number"
                   value={subjectAge}
                   onChange={(e) => setSubjectAge(e.target.value)}
                   className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-hidden focus:border-emerald-600"
-                  placeholder="২৭"
+                  placeholder={language === 'en' ? '27' : '২৭'}
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  {language === 'bn' ? 'গ্রাম ও ঠিকানা:' : 'Village & Address:'}
+                  {language === 'en' ? 'Village & Address:' : 'গ্রাম ও ঠিকানা:'}
                 </label>
                 <input
                   type="text"
@@ -611,7 +629,7 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
                   value={subjectAddress}
                   onChange={(e) => setSubjectAddress(e.target.value)}
                   className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-900 focus:outline-hidden focus:border-emerald-600"
-                  placeholder={language === 'bn' ? 'গ্রাম, ওয়ার্ড, ইউনিয়ন...' : 'Village, Ward, Union...'}
+                  placeholder={language === 'en' ? 'Village, Ward, Union...' : 'গ্রাম, ওয়ার্ড, ইউনিয়ন...'}
                 />
               </div>
             </div>
@@ -619,43 +637,43 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
         </div>
 
         {/* Step 3: Case Nature, Urgency & Safety Alert */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
+        <div className="bg-white rounded-3xl border border-slate-100/80 p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-5">
           <h3 className="text-base font-extrabold text-slate-900 pb-2 border-b border-slate-100 flex items-center gap-2">
             <Layers className="w-5 h-5 text-emerald-700" />
-            <span>{language === 'bn' ? 'মামলার ধরন ও জরুরি মূল্যায়ন' : 'Case Category & Urgency Triage'}</span>
+            <span>{language === 'en' ? 'Case Category & Urgency Triage' : 'মামলার ধরন ও জরুরি মূল্যায়ন'}</span>
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                {language === 'bn' ? 'মামলা / সমস্যার ধরন:' : 'Case / Dispute Type:'}
+                {language === 'en' ? 'Case / Dispute Type:' : 'মামলা / সমস্যার ধরন:'}
               </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-900 focus:outline-hidden focus:border-emerald-600"
+                className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-900 focus:outline-hidden focus:border-emerald-600 cursor-pointer"
               >
                 <option value="পারিবারিক সহিংসতা ও যৌতুক">
-                  {language === 'bn' ? 'পারিবারিক সহিংসতা ও শারীরিক নির্যাতন' : 'Domestic Violence & Abuse'}
+                  {language === 'en' ? 'Domestic Violence & Physical Abuse' : 'পারিবারিক সহিংসতা ও শারীরিক নির্যাতন'}
                 </option>
                 <option value="বাল্যবিয়ে প্রতিরোধ ও জোরপূর্বক আটক">
-                  {language === 'bn' ? 'বাল্যবিয়ে প্রতিরোধ ও জোরপূর্বক আটক' : 'Child Marriage Prevention & Detention'}
+                  {language === 'en' ? 'Child Marriage Prevention & Detention' : 'বাল্যবিয়ে প্রতিরোধ ও জোরপূর্বক আটক'}
                 </option>
                 <option value="জমি জবরদখল ও এতিমের সম্পত্তি বেদখল">
-                  {language === 'bn' ? 'জমি জবরদখল ও এতিমের সম্পত্তি বেদখল' : 'Land Encroachment & Property Grabbing'}
+                  {language === 'en' ? 'Land Encroachment & Property Grabbing' : 'জমি জবরদখল ও এতিমের সম্পত্তি বেদখল'}
                 </option>
                 <option value="দেনমোহর ও সন্তানের ভরণপোষণ">
-                  {language === 'bn' ? 'দেনমোহর ও সন্তানের ভরণপোষণ দাবি' : 'Dower & Child Maintenance'}
+                  {language === 'en' ? 'Dower & Child Maintenance' : 'দেনমোহর ও সন্তানের ভরণপোষণ দাবি'}
                 </option>
                 <option value="প্রবাসী শ্রমিকের ক্ষতিপূরণ ও প্রতারণা">
-                  {language === 'bn' ? 'প্রবাসী শ্রমিকের ক্ষতিপূরণ ও মজুরি' : 'Migrant Worker Compensation & Wages'}
+                  {language === 'en' ? 'Migrant Worker Compensation & Wages' : 'প্রবাসী শ্রমিকের ক্ষতিপূরণ ও মজুরি'}
                 </option>
               </select>
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                {language === 'bn' ? 'প্রাথমিক অগ্রাধিকার মাত্রা:' : 'Initial Priority Level:'}
+                {language === 'en' ? 'Initial Priority Level:' : 'প্রাথমিক অগ্রাধিকার মাত্রা:'}
               </label>
               <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                 <button
@@ -667,7 +685,7 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
                       : 'bg-slate-100 text-slate-700 hover:bg-red-50'
                   }`}
                 >
-                  <span>▲ {language === 'bn' ? 'জরুরি' : 'Urgent'}</span>
+                  <span>▲ {language === 'en' ? 'Urgent' : 'জরুরি'}</span>
                 </button>
                 <button
                   type="button"
@@ -678,7 +696,7 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
                       : 'bg-slate-100 text-slate-700 hover:bg-amber-50'
                   }`}
                 >
-                  <span>● {language === 'bn' ? 'মাঝারি' : 'Medium'}</span>
+                  <span>● {language === 'en' ? 'Medium' : 'মাঝারি'}</span>
                 </button>
                 <button
                   type="button"
@@ -689,7 +707,7 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
                       : 'bg-slate-100 text-slate-700 hover:bg-blue-50'
                   }`}
                 >
-                  <span>{language === 'bn' ? 'সাধারণ' : 'Routine'}</span>
+                  <span>{language === 'en' ? 'Routine' : 'সাধারণ'}</span>
                 </button>
               </div>
             </div>
@@ -706,7 +724,7 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
               />
               <span className="text-xs font-bold text-purple-950 flex items-center gap-1">
                 <Baby className="w-4 h-4 text-purple-700" />
-                {language === 'bn' ? 'কোলে বা সাথে শিশু বিপন্ন অবস্থায় রয়েছে' : 'Child accompanying or in danger'}
+                {language === 'en' ? 'Child accompanying or in danger' : 'কোলে বা সাথে শিশু বিপন্ন অবস্থায় রয়েছে'}
               </span>
             </label>
 
@@ -719,7 +737,7 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
               />
               <span className="text-xs font-bold text-red-950 flex items-center gap-1">
                 <ShieldAlert className="w-4 h-4 text-red-600" />
-                {language === 'bn' ? 'ভুক্তভোগীর চরম নিরাপত্তা ঝুঁকি' : 'Critical Safety Risk (Confidentiality vital)'}
+                {language === 'en' ? 'Critical Safety Risk (Confidentiality vital)' : 'ভুক্তভোগীর চরম নিরাপত্তা ঝুঁকি'}
               </span>
             </label>
           </div>
@@ -727,7 +745,7 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
           {/* Incident Description */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              {language === 'bn' ? 'ঘটনার সংক্ষিপ্ত বিবরণ:' : 'Incident Description / Summary:'}
+              {language === 'en' ? 'Incident Description / Summary:' : 'ঘটনার সংক্ষিপ্ত বিবরণ:'}
             </label>
             <textarea
               rows={3}
@@ -735,14 +753,14 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
               value={incidentDescription}
               onChange={(e) => setIncidentDescription(e.target.value)}
               className="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs sm:text-sm text-slate-800 focus:outline-hidden focus:border-emerald-600 leading-relaxed"
-              placeholder={language === 'bn' ? 'ভুক্তভোগীর অভিযোগের বিবরণ লিখুন...' : 'Write incident details...'}
+              placeholder={language === 'en' ? 'Write incident details...' : 'ভুক্তভোগীর অভিযোগের বিবরণ লিখুন...'}
             />
           </div>
 
           {/* Desired Relief */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 mb-1">
-              {language === 'bn' ? 'প্রত্যাশিত আইনগত প্রতিকার:' : 'Desired Legal Relief:'}
+              {language === 'en' ? 'Desired Legal Relief:' : 'প্রত্যাশিত আইনগত প্রতিকার:'}
             </label>
             <input
               type="text"
@@ -750,25 +768,25 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
               value={desiredRelief}
               onChange={(e) => setDesiredRelief(e.target.value)}
               className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-800 focus:outline-hidden focus:border-emerald-600"
-              placeholder={language === 'bn' ? 'যেমন: সরকারি আইনজীবী নিয়োগ / মধ্যস্থতা / পুলিশ নিরাপত্তা' : 'e.g. Panel lawyer / Mediation / Police protection'}
+              placeholder={language === 'en' ? 'e.g. Panel lawyer / Mediation / Police protection' : 'যেমন: সরকারি আইনজীবী নিয়োগ / মধ্যস্থতা / পুলিশ নিরাপত্তা'}
             />
           </div>
         </div>
 
-        {/* Submit Bar with Large Touch Target */}
-        <div className="bg-slate-900 text-white rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+        {/* Submit Bar with Strict 'Submit' / 'জমা দিন' Button */}
+        <div className="bg-slate-900 text-white rounded-3xl p-5 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl border border-slate-800">
           <div className="flex items-center gap-3">
             <div className={`w-3.5 h-3.5 rounded-full shrink-0 ${!isOnline ? 'bg-amber-400 animate-ping' : 'bg-emerald-400'}`} />
             <div>
               <div className="text-xs sm:text-sm font-bold text-white">
                 {!isOnline
-                  ? (language === 'bn' ? 'অফলাইন মোড সক্রিয় — ডিভাইসে নিরাপদ রাখা হবে' : 'Offline Mode Active — Saved safely on device')
-                  : (language === 'bn' ? 'অনলাইন সংযুক্ত — কেন্দ্রীয় ডাটাবেজে সরাসরি সিঙ্ক হবে' : 'Online Connected — Syncs to central database')}
+                  ? (language === 'en' ? 'Offline Mode Active — Saved safely on device' : 'অফলাইন মোড সক্রিয় — ডিভাইসে নিরাপদ রাখা হবে')
+                  : (language === 'en' ? 'Online Connected — Syncs to central database' : 'অনলাইন সংযুক্ত — কেন্দ্রীয় ডাটাবেজে সরাসরি সিঙ্ক হবে')}
               </div>
               <div className="text-xs text-slate-400">
                 {!isOnline
-                  ? (language === 'bn' ? 'নেটওয়ার্ক আসার পর "সিঙ্ক করুন" বাটনে চাপলে অটোমেটিক কেন্দ্রীয় ড্যাশবোর্ডে যাবে।' : 'Click "Sync" when connected to push queued cases to dashboard.')
-                  : (language === 'bn' ? 'আবেদনকারীকে তাৎক্ষণিক ট্র্যাকিং নম্বর সহ এসএমএস পাঠানো হবে।' : 'Instant SMS with tracking number will be sent to the applicant.')}
+                  ? (language === 'en' ? 'Click "Sync" when connected to push queued cases to dashboard.' : 'নেটওয়ার্ক আসার পর "সিঙ্ক করুন" বাটনে চাপলে অটোমেটিক কেন্দ্রীয় ড্যাশবোর্ডে যাবে।')
+                  : (language === 'en' ? 'Instant SMS with tracking number will be sent to the applicant.' : 'আবেদনকারীকে তাৎক্ষণিক ট্র্যাকিং নম্বর সহ এসএমএস পাঠানো হবে।')}
               </div>
             </div>
           </div>
@@ -778,11 +796,7 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
             className="w-full sm:w-auto min-h-[50px] px-8 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm sm:text-base shadow-lg transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
           >
             <Save className="w-5 h-5" />
-            <span>
-              {!isOnline 
-                ? (language === 'bn' ? 'ডিভাইসে নিরাপদ সংরক্ষণ' : 'Save on Device') 
-                : (language === 'bn' ? 'আবেদন দাখিল করুন' : 'Submit Application')}
-            </span>
+            <span>{language === 'en' ? 'Submit' : 'জমা দিন'}</span>
           </button>
         </div>
       </form>
@@ -794,13 +808,13 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
             <div className="flex items-center gap-2 text-sm font-extrabold text-amber-950">
               <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
               <span>
-                {language === 'bn' 
-                  ? `লোকাল ডিভাইসে সংরক্ষিত অপেক্ষমাণ আবেদন (${offlineQueue.length}টি)`
-                  : `Locally Queued Applications (${offlineQueue.length})`}
+                {language === 'en' 
+                  ? `Locally Queued Applications (${offlineQueue.length})`
+                  : `লোকাল ডিভাইসে সংরক্ষিত অপেক্ষমাণ আবেদন (${offlineQueue.length}টি)`}
               </span>
             </div>
             <span className="text-xs text-amber-800 font-semibold">
-              {language === 'bn' ? 'ডিভাইসে অক্ষত' : 'Safe on Device'}
+              {language === 'en' ? 'Safe on Device' : 'ডিভাইসে অক্ষত'}
             </span>
           </div>
 
@@ -811,14 +825,14 @@ export const UDCAssistedIntake: React.FC<UDCAssistedIntakeProps> = ({
                 className="bg-white p-3 rounded-xl border border-amber-200 flex items-center justify-between text-xs"
               >
                 <div>
-                  <span className="font-bold text-slate-900">{item.provenance.subjectName}</span>
-                  <span className="text-slate-500 ml-2">({item.category})</span>
+                  <span className="font-bold text-slate-900">{cleanPersonName(item.provenance.subjectName, language)}</span>
+                  <span className="text-slate-500 ml-2">({translateCategory(item.category, language)})</span>
                   <div className="text-[11px] text-amber-800 mt-0.5">
-                    {language === 'bn' ? 'ট্র্যাকিং' : 'Tracking'}: {item.trackingNumber} · {language === 'bn' ? 'কথা বলেছেন' : 'Caller'}: {item.provenance.callerName}
+                    {language === 'en' ? 'Tracking' : 'ট্র্যাকিং'}: {item.trackingNumber} · {language === 'en' ? 'Caller' : 'কথা বলেছেন'}: {cleanPersonName(item.provenance.callerName, language)}
                   </div>
                 </div>
                 <span className="px-2.5 py-1 rounded-md bg-amber-100 text-amber-900 font-bold border border-amber-300 shrink-0">
-                  {language === 'bn' ? 'অপেক্ষমাণ' : 'Pending Sync'}
+                  {language === 'en' ? 'Pending Sync' : 'অপেক্ষমাণ'}
                 </span>
               </div>
             ))}
