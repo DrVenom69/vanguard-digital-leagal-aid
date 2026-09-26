@@ -22,6 +22,8 @@ import {
   Upload, 
   X,
   History,
+  Printer,
+  Receipt,
 } from 'lucide-react';
 
 interface PanelLawyerDashboardProps {
@@ -58,6 +60,40 @@ export const PanelLawyerDashboard: React.FC<PanelLawyerDashboardProps> = ({
   );
   const [hasFileAttached, setHasFileAttached] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Challenge T1: Billing & Payments Mock Data (Bill Gadget)
+  const mockBills = [
+    {
+      id: 'BILL-2026-0701',
+      trackingNumber: 'DLA-2026-0701',
+      clientName: language === 'en' ? 'Md. Abdul Malek' : 'মোঃ আব্দুল মালেক',
+      hearingStage: language === 'en' ? 'Witness Testimony & Examination Completed' : 'সাক্ষ্যগ্রহণ ও জবানবন্দি গ্রহণ সম্পন্ন',
+      status: 'verified' as const,
+      amount: language === 'en' ? '৳ 2,500' : '৳ ২,৫০০',
+      court: language === 'en' ? 'Joint District Judge 1st Court, Dhaka' : 'যুগ্ম জেলা জজ ১ম আদালত, ঢাকা',
+      date: language === 'en' ? '22 Sep 2026' : '২২ সেপ্টেম্বর ২০২৬',
+    },
+    {
+      id: 'BILL-2026-0814',
+      trackingNumber: 'DLA-2026-0814',
+      clientName: language === 'en' ? 'Rabeya Begum' : 'রাবেয়া বেগম',
+      hearingStage: language === 'en' ? 'Plaint & Vakalatnama Filed' : 'আরজি ও ওকালতনামা দাখিল সম্পন্ন',
+      status: 'verified' as const,
+      amount: language === 'en' ? '৳ 1,800' : '৳ ১,৮০০',
+      court: language === 'en' ? 'Metropolitan Sessions Court, Dhaka' : 'মহানগর দায়রা জজ আদালত, ঢাকা',
+      date: language === 'en' ? '18 Sep 2026' : '১৮ সেপ্টেম্বর ২০২৬',
+    },
+    {
+      id: 'BILL-2026-0792',
+      trackingNumber: 'DLA-2026-0792',
+      clientName: language === 'en' ? 'Julekha Akter' : 'জুলেখা আক্তার',
+      hearingStage: language === 'en' ? 'Bail Hearing & Certified Copy Submission' : 'জামিন আবেদন শুনানি ও নকল উত্তোলন',
+      status: 'pending' as const,
+      amount: language === 'en' ? '৳ 2,000' : '৳ ২,০০০',
+      court: language === 'en' ? 'Chief Metropolitan Magistrate Court' : 'চিফ মেট্রোপলিটন ম্যাজিস্ট্রেট আদালত',
+      date: language === 'en' ? '25 Sep 2026' : '২৫ সেপ্টেম্বর ২০২৬',
+    },
+  ];
 
   const reloadCases = () => {
     setCases(getStoredCases());
@@ -169,10 +205,27 @@ export const PanelLawyerDashboard: React.FC<PanelLawyerDashboardProps> = ({
                   {language === 'en' ? 'Bar Council No: BD-BAR-19402' : 'বার কাউন্সিল নং: BD-BAR-19402'}
                 </span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-black text-white mt-1">
-                {selectedLawyer}
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-300">
+              <div className="flex flex-wrap items-center gap-2.5 mt-1">
+                <h2 className="text-xl sm:text-2xl font-black text-white">
+                  {selectedLawyer}
+                </h2>
+                <span
+                  className="inline-flex items-center gap-1.5 bg-amber-400/20 text-amber-300 border border-amber-400/40 px-3 py-1 rounded-full text-xs font-bold shadow-xs"
+                  aria-label={language === 'en' ? 'Rating: 4.8 out of 5 from 142 reviews' : 'রেটিং: ৫-এ ৪.৮ (১৪২টি রিভিউ)'}
+                >
+                  <span className="text-amber-400">⭐</span>
+                  <span>{language === 'en' ? '4.8 / 5.0 · 142 Reviews' : '৪.৮ / ৫.০ · ১৪২টি রিভিউ'}</span>
+                </span>
+              </div>
+              <div className="text-[11px] sm:text-xs font-bold text-emerald-300 mt-1 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse inline-block" />
+                <span>
+                  {language === 'en'
+                    ? 'Case Limit: Removed (Performance-based allocation)'
+                    : 'মামলা ধারণক্ষমতা সীমা: অপসারিত (কর্মদক্ষতাভিত্তিক বরাদ্দ)'}
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-300 mt-1">
                 {language === 'en'
                   ? 'District Legal Aid Office, Dhaka Judge Court · Government Legal Aid Panel Lawyer'
                   : 'জেলা লিগ্যাল এইড কার্যালয়, ঢাকা জজ কোর্ট · সরকারি আইনগত সহায়তা আইনজীবী'}
@@ -244,6 +297,115 @@ export const PanelLawyerDashboard: React.FC<PanelLawyerDashboardProps> = ({
             </div>
             <div className="text-xl font-extrabold text-amber-400 mt-0.5">
               {lawyerCases.filter(c => c.isOverdue).length} {language === 'en' ? '' : 'টি'}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Challenge T1: Billing & Payments (Bill Gadget) */}
+      <section
+        className="bg-white rounded-3xl p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all border border-slate-100/50 space-y-4"
+        aria-label={language === 'en' ? 'Billing & Payments Gadget' : 'বিল ও পেমেন্ট রিকনসিলিয়েশন গ্যাজেট'}
+      >
+        {/* Card Header with Print Button */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3.5 border-b border-slate-100 gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-100">
+              <Receipt className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base sm:text-lg font-black text-slate-900">
+                  {language === 'en' ? 'Billing & Payments (Bill Gadget)' : 'বিল ও পেমেন্ট রিকনসিলিয়েশন (বিল গ্যাজেট)'}
+                </h3>
+                <span className="text-[11px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full border border-emerald-300">
+                  {language === 'en' ? 'Challenge T1' : 'চ্যালেঞ্জ T1'}
+                </span>
+              </div>
+              <p className="text-xs text-slate-500">
+                {language === 'en'
+                  ? 'Reconciliation of advocate hearing fees under Legal Aid Rules'
+                  : 'আইনগত সহায়তা বিধিমালা অনুযায়ী প্যানেল আইনজীবীর শুনানির বিল ও কোর্ট যাচাই'}
+              </p>
+            </div>
+          </div>
+
+          {/* Prominent Print Verified Bills Button with window.print() */}
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="min-h-[44px] px-5 py-2.5 rounded-2xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs sm:text-sm shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer self-start sm:self-auto shrink-0"
+            title={language === 'en' ? 'Print Verified Bills for Accounts Submission' : 'হিসাব শাখায় দাখিলের জন্য যাচাইকৃত বিল প্রিন্ট করুন'}
+          >
+            <Printer className="w-4 h-4" />
+            <span>{language === 'en' ? 'Print Verified Bills' : 'যাচাইকৃত বিল প্রিন্ট করুন'}</span>
+          </button>
+        </div>
+
+        {/* Bills Table / Responsive List */}
+        <div className="overflow-x-auto no-scrollbar">
+          <table className="w-full text-left border-collapse min-w-[620px]">
+            <thead>
+              <tr className="border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/80">
+                <th className="py-3 px-4 rounded-l-xl">{language === 'en' ? 'Case Tracking ID' : 'কেস ট্র্যাকিং আইডি'}</th>
+                <th className="py-3 px-4">{language === 'en' ? 'Hearing Stage & Court' : 'শুনানির পর্যায় ও আদালত'}</th>
+                <th className="py-3 px-4">{language === 'en' ? 'Court Verification Status' : 'কোর্ট যাচাইকরণ স্ট্যাটাস'}</th>
+                <th className="py-3 px-4 text-right rounded-r-xl">{language === 'en' ? 'Amount' : 'বিল পরিমাণ'}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-xs">
+              {mockBills.map((bill) => (
+                <tr key={bill.id} className="hover:bg-slate-50/60 transition-colors">
+                  <td className="py-3.5 px-4 font-mono">
+                    <span className="font-bold text-emerald-900 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 block w-fit">
+                      {bill.trackingNumber}
+                    </span>
+                    <span className="text-[11px] text-slate-400 block mt-1">{bill.clientName}</span>
+                  </td>
+                  <td className="py-3.5 px-4">
+                    <div className="font-bold text-slate-800">{bill.hearingStage}</div>
+                    <div className="text-[11px] text-slate-400 mt-0.5">{bill.court} · {bill.date}</div>
+                  </td>
+                  <td className="py-3.5 px-4">
+                    {bill.status === 'verified' ? (
+                      <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>{language === 'en' ? 'Verified' : 'যাচাইকৃত'}</span>
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-xs font-bold border border-amber-200">
+                        <Clock className="w-3.5 h-3.5 text-amber-600" />
+                        <span>{language === 'en' ? 'Pending Court Verification' : 'আদালত যাচাই অপেক্ষমাণ'}</span>
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-3.5 px-4 text-right font-black font-mono text-sm sm:text-base text-slate-900">
+                    {bill.amount}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Reconciliation Summary Bar */}
+        <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-100/60 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2 text-slate-600">
+            <span className="font-bold">{language === 'en' ? 'Reconciliation Total:' : 'সর্বমোট রিকনসিলিয়েশন:'}</span>
+            <span className="text-slate-500">
+              {language === 'en' ? '2 Verified · 1 Pending Verification' : '২টি যাচাইকৃত · ১টি যাচাই অপেক্ষমাণ'}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5">
+              <span className="text-slate-400 text-[11px] font-semibold">{language === 'en' ? 'Verified Payable:' : 'যাচাইকৃত পরিশোধযোগ্য:'}</span>
+              <span className="font-black font-mono text-emerald-700 text-sm sm:text-base">{language === 'en' ? '৳ 4,300' : '৳ ৪,৩০০'}</span>
+            </div>
+            <div className="w-px h-4 bg-slate-200" />
+            <div className="flex items-center gap-1.5">
+              <span className="text-slate-400 text-[11px] font-semibold">{language === 'en' ? 'Pending:' : 'অপেক্ষমাণ:'}</span>
+              <span className="font-bold font-mono text-amber-600 text-sm sm:text-base">{language === 'en' ? '৳ 2,000' : '৳ ২,০০০'}</span>
             </div>
           </div>
         </div>
