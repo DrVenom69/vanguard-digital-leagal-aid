@@ -52,7 +52,7 @@ export const Header: React.FC<HeaderProps> = ({
   }[] = [
     {
       role: 'dlao',
-      title: language === 'bn' ? 'জেলা কর্মকর্তা (DLAO)' : 'DLAO Admin',
+      title: language === 'bn' ? 'জেলা লিগ্যাল এইড কর্মকর্তা' : 'DLAO Admin',
       subtitle: language === 'bn' ? 'আবেদন ব্যাকলগ ও তাৎক্ষণিক ঝুঁকি মূল্যায়ন' : 'Case backlog triage & risk assessment',
       icon: Building2,
       accentColor: 'text-emerald-400',
