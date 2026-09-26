@@ -15,6 +15,8 @@ import {
   Check,
   X
 } from 'lucide-react';
+import { Language } from '../../types';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface ESignatureProps {
   partyAName: string;
@@ -23,16 +25,24 @@ interface ESignatureProps {
   partyBRole?: string;
   isOnline: boolean;
   onSignComplete?: (status: { partyASigned: boolean; partyBSigned: boolean; isSynced: boolean }) => void;
+  language?: Language;
 }
 
 export const ESignatureComponent: React.FC<ESignatureProps> = ({
   partyAName,
-  partyARole = 'প্রথম পক্ষ (অভিযোগকারী / ভুক্তভোগী)',
+  partyARole,
   partyBName,
-  partyBRole = 'দ্বিতীয় পক্ষ (প্রতিপক্ষ / স্বামী)',
+  partyBRole,
   isOnline,
   onSignComplete,
+  language: propLanguage,
 }) => {
+  const { language: ctxLanguage } = useLanguage();
+  const language = propLanguage || ctxLanguage;
+
+  const resolvedRoleA = partyARole || (language === 'en' ? 'First Party (Complainant / Victim)' : 'প্রথম পক্ষ (অভিযোগকারী / ভুক্তভোগী)');
+  const resolvedRoleB = partyBRole || (language === 'en' ? 'Second Party (Opposite Party / Husband)' : 'দ্বিতীয় পক্ষ (প্রতিপক্ষ / স্বামী)');
+
   // Party B Offline status toggle (Challenge T11)
   const [partyBIsOffline, setPartyBIsOffline] = useState<boolean>(true);
 
@@ -50,7 +60,6 @@ export const ESignatureComponent: React.FC<ESignatureProps> = ({
 
   // Simulated canvas drawing for Party B
   const canvasRefB = useRef<HTMLCanvasElement | null>(null);
-  const [isDrawingB, setIsDrawingB] = useState(false);
 
   // Quick signature drawer
   const drawSignaturePlaceholder = (canvas: HTMLCanvasElement | null, text: string) => {
@@ -92,12 +101,13 @@ export const ESignatureComponent: React.FC<ESignatureProps> = ({
   };
 
   const handleSignPartyA = () => {
-    drawSignaturePlaceholder(canvasRefA.current, `e-Sign: ${partyAName} • ${new Date().toLocaleTimeString('bn-BD')}`);
+    const timeStr = new Date().toLocaleTimeString(language === 'bn' ? 'bn-BD' : 'en-US');
+    drawSignaturePlaceholder(canvasRefA.current, `e-Sign: ${partyAName} • ${timeStr}`);
     setPartyASigned(true);
   };
 
   const handleSignPartyB = () => {
-    const timeStr = new Date().toLocaleTimeString('bn-BD');
+    const timeStr = new Date().toLocaleTimeString(language === 'bn' ? 'bn-BD' : 'en-US');
     setPartyBSignatureTime(timeStr);
     drawSignaturePlaceholder(canvasRefB.current, `e-Sign: ${partyBName} • ${timeStr}`);
     setPartyBSigned(true);
@@ -124,7 +134,7 @@ export const ESignatureComponent: React.FC<ESignatureProps> = ({
     };
   };
 
-  // Canvas touch/mouse handlers for Party A with coordinate scaling & touch scroll locking
+  // Canvas touch/mouse handlers for Party A
   const startDrawingA = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
     if ('touches' in e && e.cancelable) e.preventDefault();
     setIsDrawingA(true);
@@ -205,10 +215,6 @@ export const ESignatureComponent: React.FC<ESignatureProps> = ({
     setShowFullscreenModal(false);
   };
 
-  // Check if Party B is actually online based on both global network status and local toggle
-  // The requirement states:
-  // "Add a toggle for 'Party B is Offline'. If Party B is offline, show a cryptographic placeholder
-  // (e.g., 'Awaiting sync - Hash ID: 8f9a2b...') that changes to a green 'Verified Signature' once connection is toggled back on."
   const isPartyBConnected = isOnline && !partyBIsOffline;
 
   useEffect(() => {
@@ -222,25 +228,27 @@ export const ESignatureComponent: React.FC<ESignatureProps> = ({
   }, [partyASigned, partyBSigned, isPartyBConnected, onSignComplete]);
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-5">
+    <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/50 space-y-5">
       {/* Header with Offline capability description & Toggle */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 gap-3">
         <div>
           <div className="flex items-center gap-2">
             <PenTool className="w-5 h-5 text-emerald-700" />
             <h4 className="text-base font-extrabold text-slate-900">
-              অফলাইন-সক্ষম ডিজিটাল ই-স্বাক্ষর (E-Signature Component)
+              {language === 'en' ? 'Offline-Capable Digital E-Signature' : 'অফলাইন-সক্ষম ডিজিটাল ই-স্বাক্ষর'}
             </h4>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            চ্যালেঞ্জ T11: অফলাইন অবস্থায় ক্রিপ্টোগ্রাফিক কিউ (Cryptographic Hash Queue) ভিত্তিক প্রমাণের সুরক্ষা।
+            {language === 'en'
+              ? 'Cryptographic Hash Queue verification for offline multi-party settlements.'
+              : 'অফলাইন অবস্থায় ক্রিপ্টোগ্রাফিক কিউ ভিত্তিক প্রমাণের সুরক্ষা।'}
           </p>
         </div>
 
-        {/* Challenge T11 explicit requirement: Add a toggle for "Party B is Offline" */}
+        {/* Toggle for Party B connection */}
         <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200 self-start sm:self-center">
           <span className="text-xs font-bold text-slate-700 pl-1">
-            দ্বিতীয় পক্ষের সংযোগ:
+            {language === 'en' ? 'Second Party Connection:' : 'দ্বিতীয় পক্ষের সংযোগ:'}
           </span>
           <button
             type="button"
@@ -250,17 +258,17 @@ export const ESignatureComponent: React.FC<ESignatureProps> = ({
                 ? 'bg-amber-500 text-slate-950 border border-amber-600'
                 : 'bg-emerald-600 text-white border border-emerald-700'
             }`}
-            aria-label="দ্বিতীয় পক্ষ অফলাইন বা অনলাইন টগল করুন"
+            aria-label={language === 'en' ? 'Toggle Party B online or offline' : 'দ্বিতীয় পক্ষ অফলাইন বা অনলাইন টগল করুন'}
           >
             {partyBIsOffline ? (
               <>
                 <WifiOff className="w-3.5 h-3.5" />
-                <span>Party B is Offline (অফলাইন)</span>
+                <span>{language === 'en' ? 'Party B is Offline' : 'দ্বিতীয় পক্ষ অফলাইন'}</span>
               </>
             ) : (
               <>
                 <Wifi className="w-3.5 h-3.5" />
-                <span>Party B is Online (অনলাইন)</span>
+                <span>{language === 'en' ? 'Party B is Online' : 'দ্বিতীয় পক্ষ অনলাইন'}</span>
               </>
             )}
           </button>
@@ -270,30 +278,30 @@ export const ESignatureComponent: React.FC<ESignatureProps> = ({
       {/* Two Signature Blocks (Party A and Party B) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* ================= PARTY A SIGNATURE BLOCK ================= */}
-        <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-3">
+        <div className="rounded-2xl border border-slate-100/80 bg-slate-50/80 p-5 space-y-3">
           <div className="flex items-center justify-between">
             <div>
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">
-                স্বাক্ষরকারী (Party A)
+                {language === 'en' ? 'Signatory (Party A)' : 'স্বাক্ষরকারী (প্রথম পক্ষ)'}
               </span>
               <h5 className="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
                 <span>{partyAName}</span>
                 <span className="text-[11px] text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full font-medium">
-                  উপস্থিত
+                  {language === 'en' ? 'Present' : 'উপস্থিত'}
                 </span>
               </h5>
-              <div className="text-[11px] text-slate-500">{partyARole}</div>
+              <div className="text-[11px] text-slate-500">{resolvedRoleA}</div>
             </div>
 
             {partyASigned ? (
               <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full border border-emerald-300">
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>স্বাক্ষরিত</span>
+                <span>{language === 'en' ? 'Signed' : 'স্বাক্ষরিত'}</span>
               </span>
             ) : (
               <span className="inline-flex items-center gap-1 text-xs font-bold text-slate-500 bg-slate-200 px-2.5 py-1 rounded-full">
                 <Clock className="w-3.5 h-3.5" />
-                <span>স্বাক্ষর বাকি</span>
+                <span>{language === 'en' ? 'Signature Pending' : 'স্বাক্ষর বাকি'}</span>
               </span>
             )}
           </div>
@@ -316,7 +324,7 @@ export const ESignatureComponent: React.FC<ESignatureProps> = ({
             {!partyASigned && (
               <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center text-slate-400 text-xs">
                 <PenTool className="w-4 h-4 mb-1" />
-                <span>এখানে আঙুল বা মাউস দিয়ে স্বাক্ষর করুন</span>
+                <span>{language === 'en' ? 'Sign with finger or mouse here' : 'এখানে আঙুল বা মাউস দিয়ে স্বাক্ষর করুন'}</span>
               </div>
             )}
           </div>
@@ -327,63 +335,60 @@ export const ESignatureComponent: React.FC<ESignatureProps> = ({
               <button
                 type="button"
                 onClick={handleSignPartyA}
-                className="text-xs font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-200 transition active:scale-95"
+                className="text-xs font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-200 transition active:scale-95 cursor-pointer"
               >
-                স্বয়ংক্রিয় ই-স্বাক্ষর
+                {language === 'en' ? 'Auto e-Sign' : 'স্বয়ংক্রিয় ই-স্বাক্ষর'}
               </button>
 
               <button
                 type="button"
                 onClick={() => setShowFullscreenModal(true)}
-                className="text-xs font-bold text-blue-700 hover:text-blue-800 bg-blue-50 px-2.5 py-1.5 rounded-lg border border-blue-200 transition flex items-center gap-1 active:scale-95"
-                title="মোবাইলে সহজে আঙুল দিয়ে স্বাক্ষর করতে বড় প্যাড খুলুন"
+                className="text-xs font-bold text-blue-700 hover:text-blue-800 bg-blue-50 px-2.5 py-1.5 rounded-lg border border-blue-200 transition flex items-center gap-1 active:scale-95 cursor-pointer"
+                title={language === 'en' ? 'Open large pad for touch signing' : 'মোবাইলে সহজে আঙুল দিয়ে স্বাক্ষর করতে বড় প্যাড খুলুন'}
               >
                 <Maximize2 className="w-3.5 h-3.5" />
-                <span>বড় প্যাড</span>
+                <span>{language === 'en' ? 'Large Pad' : 'বড় প্যাড'}</span>
               </button>
             </div>
 
             <button
               type="button"
               onClick={() => clearCanvas(canvasRefA.current, setPartyASigned)}
-              className="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 p-1"
+              className="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 p-1 cursor-pointer"
             >
               <RotateCcw className="w-3 h-3" />
-              <span>মুছুন</span>
+              <span>{language === 'en' ? 'Clear' : 'মুছুন'}</span>
             </button>
           </div>
         </div>
 
         {/* ================= PARTY B SIGNATURE BLOCK ================= */}
-        <div className={`rounded-xl border p-4 space-y-3 transition-colors ${
+        <div className={`rounded-2xl border p-5 space-y-3 transition-colors ${
           partyBIsOffline 
-            ? 'border-amber-300 bg-amber-50/60' 
-            : 'border-slate-200 bg-slate-50/70'
+            ? 'border-amber-200 bg-amber-50/60' 
+            : 'border-slate-100/80 bg-slate-50/80'
         }`}>
           <div className="flex items-center justify-between">
             <div>
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">
-                স্বাক্ষরকারী (Party B)
+                {language === 'en' ? 'Signatory (Party B)' : 'স্বাক্ষরকারী (দ্বিতীয় পক্ষ)'}
               </span>
               <h5 className="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
                 <span>{partyBName}</span>
                 {partyBIsOffline ? (
                   <span className="text-[11px] text-amber-900 bg-amber-200 px-2 py-0.5 rounded-full font-bold border border-amber-300">
-                    অফলাইন রিমোট
+                    {language === 'en' ? 'Offline Remote' : 'অফলাইন রিমোট'}
                   </span>
                 ) : (
                   <span className="text-[11px] text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full font-medium">
-                    অনলাইনে সংযুক্ত
+                    {language === 'en' ? 'Online Connected' : 'অনলাইনে সংযুক্ত'}
                   </span>
                 )}
               </h5>
-              <div className="text-[11px] text-slate-500">{partyBRole}</div>
+              <div className="text-[11px] text-slate-500">{resolvedRoleB}</div>
             </div>
 
-            {/* STATUS BADGE REQUIREMENT:
-                "If Party B is offline, show a cryptographic placeholder (e.g., 'Awaiting sync - Hash ID: 8f9a2b...')
-                 that changes to a green 'Verified Signature' once connection is toggled back on."
-            */}
+            {/* STATUS BADGE */}
             {isPartyBConnected ? (
               <span
                 role="status"
@@ -391,7 +396,7 @@ export const ESignatureComponent: React.FC<ESignatureProps> = ({
                 className="inline-flex items-center gap-1.5 text-xs font-extrabold text-white bg-emerald-700 px-3 py-1.5 rounded-lg shadow-xs animate-in fade-in"
               >
                 <ShieldCheck className="w-4 h-4 text-emerald-100" />
-                <span>Verified Signature (যাচাইকৃত স্বাক্ষর)</span>
+                <span>{language === 'en' ? 'Verified Signature' : 'যাচাইকৃত স্বাক্ষর'}</span>
               </span>
             ) : (
               <span
@@ -400,7 +405,7 @@ export const ESignatureComponent: React.FC<ESignatureProps> = ({
                 className="inline-flex items-center gap-1 text-xs font-bold text-amber-900 bg-amber-200 px-2.5 py-1 rounded-lg border border-amber-400"
               >
                 <Clock className="w-3.5 h-3.5 text-amber-800 animate-spin" />
-                <span>অফলাইন অপেক্ষমাণ</span>
+                <span>{language === 'en' ? 'Offline Awaiting' : 'অফলাইন অপেক্ষমাণ'}</span>
               </span>
             )}
           </div>
@@ -412,14 +417,20 @@ export const ESignatureComponent: React.FC<ESignatureProps> = ({
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-amber-900 flex items-center gap-1">
                   <Lock className="w-3.5 h-3.5 text-amber-700" />
-                  <span>Awaiting sync - Hash ID: {cryptoHash}...</span>
+                  <span>
+                    {language === 'en'
+                      ? `Awaiting sync - Hash ID: ${cryptoHash.slice(0, 14)}...`
+                      : `সিঙ্কের অপেক্ষায় - হ্যাশ: ${cryptoHash.slice(0, 14)}...`}
+                  </span>
                 </span>
                 <span className="text-[10px] font-mono bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded border border-amber-300">
                   SHA-256 Offline
                 </span>
               </div>
               <p className="text-[11px] text-slate-600 leading-snug">
-                দ্বিতীয় পক্ষ অফলাইন থাকায় স্বাক্ষরটি লোকাল কি-পেয়ারে এনক্রিপ্ট করে হ্যাশ সংরক্ষণ করা হয়েছে। নেটওয়ার্ক ফিরলেই স্বয়ংক্রিয়ভাবে ভেরিফাইড হবে।
+                {language === 'en'
+                  ? 'Party B is offline. Signature encrypted locally with keypair and queued for sync.'
+                  : 'দ্বিতীয় পক্ষ অফলাইন থাকায় স্বাক্ষরটি লোকাল কি-পেয়ারে এনক্রিপ্ট করে হ্যাশ সংরক্ষণ করা হয়েছে।'}
               </p>
               <div className="flex items-center gap-1 text-[10px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
                 <Hash className="w-3 h-3 text-slate-400 shrink-0" />
@@ -432,18 +443,20 @@ export const ESignatureComponent: React.FC<ESignatureProps> = ({
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <span className="font-extrabold">Verified Signature ✅</span>
+                  <span className="font-extrabold">{language === 'en' ? 'Verified Signature ✅' : 'যাচাইকৃত স্বাক্ষর ✅'}</span>
                 </span>
                 <span className="text-[10px] font-mono bg-emerald-200 text-emerald-900 px-1.5 py-0.5 rounded font-bold">
-                  ব্লকচেইন হ্যাশ ভ্যালিড
+                  {language === 'en' ? 'Blockchain Hash Valid' : 'ব্লকচেইন হ্যাশ ভ্যালিড'}
                 </span>
               </div>
               <div className="text-xs font-bold text-slate-800">
-                ই-স্বাক্ষর প্রদানকারী: {partyBName} (জাতীয় পরিচয়পত্র এনআইডি ম্যাচড)
+                {language === 'en'
+                  ? `E-Signatory: ${partyBName} (NID Matched)`
+                  : `ই-স্বাক্ষর প্রদানকারী: ${partyBName} (জাতীয় পরিচয়পত্র এনআইডি ম্যাচড)`}
               </div>
               <div className="flex items-center justify-between text-[10px] text-slate-600 font-mono bg-white/80 p-1 rounded border border-emerald-200">
-                <span>সার্টিফিকেট: #DLA-SIG-{cryptoHash.slice(0, 10)}</span>
-                <span className="text-emerald-700 font-bold">✓ সেন্ট্রাল সার্ভারে সিঙ্কড</span>
+                <span>{language === 'en' ? 'Certificate' : 'সার্টিফিকেট'}: #DLA-SIG-{cryptoHash.slice(0, 10)}</span>
+                <span className="text-emerald-700 font-bold">{language === 'en' ? '✓ Synced to Server' : '✓ সেন্ট্রাল সার্ভারে সিঙ্কড'}</span>
               </div>
             </div>
           )}
@@ -456,12 +469,14 @@ export const ESignatureComponent: React.FC<ESignatureProps> = ({
                 setPartyBIsOffline(false);
                 handleSignPartyB();
               }}
-              className="text-xs font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-200 transition"
+              className="text-xs font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-200 transition cursor-pointer"
             >
-              অনলাইনে এনে ভেরিফাই করুন
+              {language === 'en' ? 'Bring Online & Verify' : 'অনলাইনে এনে ভেরিফাই করুন'}
             </button>
             <span className="text-[11px] text-slate-500">
-              {partyBIsOffline ? 'অফলাইন মোড চালু' : 'লাইভ এনক্রিপ্টেড'}
+              {partyBIsOffline 
+                ? (language === 'en' ? 'Offline Mode Active' : 'অফলাইন মোড চালু') 
+                : (language === 'en' ? 'Live Encrypted' : 'লাইভ এনক্রিপ্টেড')}
             </span>
           </div>
         </div>
@@ -477,13 +492,19 @@ export const ESignatureComponent: React.FC<ESignatureProps> = ({
           <FileCheck className="w-4 h-4 shrink-0" />
           <span className="font-bold">
             {partyASigned && isPartyBConnected
-              ? 'উভয় পক্ষের আইনগত বৈধ স্বাক্ষর সম্পন্ন ও এডিআর মীমাংসাপত্র বলবৎ হয়েছে।'
-              : 'চুক্তি পূর্ণাঙ্গ কার্যকর করতে উভয় পক্ষের স্বাক্ষর ও সিঙ্ক আবশ্যক।'}
+              ? (language === 'en'
+                  ? 'Both parties have completed legally valid e-signatures. ADR settlement deed is in effect.'
+                  : 'উভয় পক্ষের আইনগত বৈধ স্বাক্ষর সম্পন্ন ও এডিআর মীমাংসাপত্র বলবৎ হয়েছে।')
+              : (language === 'en'
+                  ? 'Signatures and sync required from both parties for full legal enactment.'
+                  : 'চুক্তি পূর্ণাঙ্গ কার্যকর করতে উভয় পক্ষের স্বাক্ষর ও সিঙ্ক আবশ্যক।')}
           </span>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[11px] opacity-90">
-            আইনগত সহায়তা প্রদান আইন ২০০০ এর ২১ক ধারা মোতাবেক নিষ্পত্তিকৃত
+            {language === 'en'
+              ? 'Enacted under Section 21A, Legal Aid Services Act 2000'
+              : 'আইনগত সহায়তা প্রদান আইন ২০০০ এর ২১ক ধারা মোতাবেক নিষ্পত্তিকৃত'}
           </span>
         </div>
       </div>
@@ -493,7 +514,7 @@ export const ESignatureComponent: React.FC<ESignatureProps> = ({
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="মোবাইল বড় স্ক্রিন ডিজিটাল স্বাক্ষর প্যাড"
+          aria-label={language === 'en' ? 'Fullscreen Mobile Signature Pad' : 'মোবাইল বড় স্ক্রিন ডিজিটাল স্বাক্ষর প্যাড'}
           className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex flex-col justify-end sm:justify-center p-0 sm:p-4 animate-in fade-in duration-200"
         >
           <div
@@ -508,18 +529,18 @@ export const ESignatureComponent: React.FC<ESignatureProps> = ({
                 <PenTool className="w-5 h-5 text-emerald-400" />
                 <div>
                   <h3 className="font-extrabold text-sm sm:text-base text-white">
-                    ডিজিটাল স্বাক্ষর প্যাড (আঙুল দিয়ে স্বাক্ষর করুন)
+                    {language === 'en' ? 'Digital Signature Pad (Sign with finger)' : 'ডিজিটাল স্বাক্ষর প্যাড (আঙুল দিয়ে স্বাক্ষর করুন)'}
                   </h3>
                   <p className="text-[11px] text-slate-400">
-                    স্বাক্ষরকারী: {partyAName} ({partyARole})
+                    {language === 'en' ? 'Signatory:' : 'স্বাক্ষরকারী:'} {partyAName} ({resolvedRoleA})
                   </p>
                 </div>
               </div>
 
               <button
                 onClick={() => setShowFullscreenModal(false)}
-                className="w-8 h-8 rounded-full bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center transition"
-                aria-label="বন্ধ করুন"
+                className="w-8 h-8 rounded-full bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer"
+                aria-label={language === 'en' ? 'Close' : 'বন্ধ করুন'}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -528,8 +549,14 @@ export const ESignatureComponent: React.FC<ESignatureProps> = ({
             {/* Modal Body & Large Touch-Friendly Canvas */}
             <div className="p-4 sm:p-6 space-y-4">
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-2.5 text-xs text-amber-900 flex items-center justify-between gap-2">
-                <span>📱 ফোনটি আড়াআড়ি (Landscape) ঘুরিয়ে নিলে আরো বড় জায়গায় স্বাক্ষর করতে পারবেন।</span>
-                <span className="text-[10px] font-bold bg-amber-200 px-2 py-0.5 rounded">টিপস</span>
+                <span>
+                  {language === 'en'
+                    ? '📱 Rotating phone to landscape provides a larger signature drawing area.'
+                    : '📱 ফোনটি আড়াআড়ি ঘুরিয়ে নিলে আরো বড় জায়গায় স্বাক্ষর করতে পারবেন।'}
+                </span>
+                <span className="text-[10px] font-bold bg-amber-200 px-2 py-0.5 rounded">
+                  {language === 'en' ? 'Tip' : 'পরামর্শ'}
+                </span>
               </div>
 
               <div className="relative bg-white border-2 border-dashed border-slate-400 rounded-2xl h-56 sm:h-64 overflow-hidden touch-none flex items-center justify-center shadow-inner">
@@ -548,7 +575,7 @@ export const ESignatureComponent: React.FC<ESignatureProps> = ({
                 />
                 <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center text-slate-300 text-sm select-none">
                   <PenTool className="w-6 h-6 mb-1 text-slate-300" />
-                  <span>আঙুল দিয়ে এখানে আপনার স্বাক্ষর আঁকুন</span>
+                  <span>{language === 'en' ? 'Draw your signature here with your finger' : 'আঙুল দিয়ে এখানে আপনার স্বাক্ষর আঁকুন'}</span>
                 </div>
               </div>
 
@@ -563,28 +590,28 @@ export const ESignatureComponent: React.FC<ESignatureProps> = ({
                       if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
                     }
                   }}
-                  className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 font-bold text-xs sm:text-sm flex items-center gap-1.5 transition active:scale-95"
+                  className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 font-bold text-xs sm:text-sm flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
                 >
                   <RotateCcw className="w-4 h-4" />
-                  <span>মুছে আবার লিখুন</span>
+                  <span>{language === 'en' ? 'Clear & Redo' : 'মুছে আবার লিখুন'}</span>
                 </button>
 
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setShowFullscreenModal(false)}
-                    className="px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-bold text-xs sm:text-sm transition"
+                    className="px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-bold text-xs sm:text-sm transition cursor-pointer"
                   >
-                    বাতিল
+                    {language === 'en' ? 'Cancel' : 'বাতিল'}
                   </button>
 
                   <button
                     type="button"
                     onClick={handleApplyFullscreenSignature}
-                    className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm shadow-md transition active:scale-95 flex items-center gap-1.5"
+                    className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm shadow-md transition active:scale-95 flex items-center gap-1.5 cursor-pointer"
                   >
                     <Check className="w-4 h-4" />
-                    <span>স্বাক্ষর নিশ্চিত করুন</span>
+                    <span>{language === 'en' ? 'Confirm Signature' : 'স্বাক্ষর নিশ্চিত করুন'}</span>
                   </button>
                 </div>
               </div>
