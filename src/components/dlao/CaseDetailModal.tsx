@@ -5,6 +5,13 @@ import { ProvenanceHeader } from './ProvenanceHeader';
 import { JurisdictionReferralFlow } from './JurisdictionReferralFlow';
 import { SensitiveDocumentsViewer } from './SensitiveDocumentsViewer';
 import { 
+  translateCategory, 
+  translateAISummary, 
+  translateSuggestedAction, 
+  cleanPersonName, 
+  translateTimeAgo 
+} from '../../utils/translations';
+import { 
   X, 
   ShieldCheck, 
   UserCheck, 
@@ -118,15 +125,6 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
     if (onUpdateCase) onUpdateCase(updated);
   };
 
-  const cleanSummary = (text: string) => {
-    if (text.includes('(')) {
-      return language === 'bn' 
-        ? text.split('(')[1]?.replace(')', '')?.trim() || text 
-        : text.split('(')[0]?.trim();
-    }
-    return text;
-  };
-
   return (
     <div
       className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/70 backdrop-blur-xs flex justify-end transition-opacity"
@@ -158,7 +156,7 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
                 </span>
               </div>
               <h2 className="text-sm sm:text-base font-bold text-white truncate">
-                {legalCase.provenance.subjectName} — {legalCase.category}
+                {cleanPersonName(legalCase.provenance.subjectName, language)} — {translateCategory(legalCase.category, language)}
               </h2>
             </div>
           </div>
@@ -229,12 +227,12 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
             </div>
             <div className="mt-3 space-y-2">
               <div className="text-sm font-semibold text-slate-800">
-                {cleanSummary(legalCase.aiSummary)}
+                {translateAISummary(legalCase.aiSummary, language)}
               </div>
               {legalCase.aiSuggestedAction && (
                 <div className="text-xs text-emerald-900 bg-white/80 p-2.5 rounded-xl border border-emerald-200 leading-relaxed">
                   <strong>{language === 'bn' ? 'সুপারিশকৃত সরকারি প্রতিকার:' : 'Recommended Relief:'} </strong>
-                  {legalCase.aiSuggestedAction}
+                  {translateSuggestedAction(legalCase.aiSuggestedAction, language)}
                 </div>
               )}
             </div>
@@ -336,6 +334,7 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
             <JurisdictionReferralFlow
               legalCase={legalCase}
               onUpdateCase={onUpdateCase}
+              language={language}
             />
           )}
 
@@ -343,6 +342,7 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
           <SensitiveDocumentsViewer
             legalCase={legalCase}
             onUpdateCase={onUpdateCase}
+            language={language}
           />
 
           {/* Legal Aid Status & Assigned Lawyer Display */}
@@ -356,7 +356,9 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
                   <div className="text-xs text-emerald-800 font-semibold">
                     {language === 'bn' ? 'নিযুক্ত সরকারি আইনজীবী:' : 'Assigned Government Lawyer:'}
                   </div>
-                  <div className="text-sm font-bold text-emerald-950">{legalCase.assignedLawyer}</div>
+                  <div className="text-sm font-bold text-emerald-950">
+                    {cleanPersonName(legalCase.assignedLawyer, language)}
+                  </div>
                 </div>
               </div>
               <span className="text-xs bg-emerald-200 text-emerald-900 font-bold px-3 py-1 rounded-full border border-emerald-400">
@@ -388,20 +390,20 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
           <div className="rounded-2xl border-2 border-slate-800 bg-slate-900 text-white p-5 space-y-4">
             <h4 className="text-sm font-bold text-emerald-400 flex items-center gap-2">
               <Scale className="w-4 h-4" />
-              <span>{language === 'bn' ? 'DLAO প্রশাসনিক অ্যাকশন গ্রহণ' : 'DLAO Administrative Action'}</span>
+              <span>{language === 'bn' ? 'প্রশাসনিক পদক্ষেপ গ্রহণ' : 'DLAO Administrative Action'}</span>
             </h4>
 
             {/* Assign Panel Lawyer Input */}
             <div className="space-y-2">
               <label className="block text-xs font-semibold text-slate-300">
-                {language === 'bn' ? 'প্যানেল আইনজীবী নিয়োগ করুন:' : 'Assign Panel Lawyer:'}
+                {language === 'en' ? 'Assign Panel Lawyer:' : 'প্যানেল আইনজীবী নিয়োগ করুন:'}
               </label>
               <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
                   value={assignedLawyerInput}
                   onChange={(e) => setAssignedLawyerInput(e.target.value)}
-                  placeholder={language === 'bn' ? 'যেমন: অ্যাডভোকেট সৈয়দ নাসির উদ্দীন' : 'e.g. Advocate Syed Nasir Uddin'}
+                  placeholder={language === 'en' ? 'e.g. Advocate Syed Nasir Uddin' : 'যেমন: অ্যাডভোকেট সৈয়দ নাসির উদ্দীন'}
                   className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-base sm:text-sm text-white focus:outline-hidden focus:border-emerald-500"
                 />
                 <button
@@ -409,7 +411,7 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
                   className="min-h-[44px] bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold shrink-0 transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <UserCheck className="w-4 h-4" />
-                  <span>{language === 'bn' ? 'আইনজীবী নিযুক্ত' : 'Assign Lawyer'}</span>
+                  <span>{language === 'en' ? 'Assign Lawyer' : 'আইনজীবী নিযুক্ত'}</span>
                 </button>
               </div>
             </div>
@@ -420,7 +422,7 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
                 onClick={handleScheduleADR}
                 className="min-h-[44px] bg-slate-800 hover:bg-slate-700 border border-slate-700 text-blue-300 px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
               >
-                <span>{language === 'bn' ? 'এডিআর / মধ্যস্থতা তলব' : 'Schedule ADR'}</span>
+                <span>{language === 'en' ? 'Schedule ADR' : 'এডিআর তলব'}</span>
               </button>
 
               <button
@@ -428,7 +430,7 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
                 className="min-h-[44px] bg-red-950/80 hover:bg-red-900 border border-red-700 text-red-200 px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
               >
                 <AlertOctagon className="w-4 h-4 text-red-400" />
-                <span>{language === 'bn' ? 'জরুরি ৯৯৯ / থানা সংযোগ' : 'Emergency 999 Alert'}</span>
+                <span>{language === 'en' ? 'Emergency 999 Alert' : 'জরুরি ৯৯৯ সংযোগ'}</span>
               </button>
 
               <button
@@ -436,7 +438,7 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
                 className="min-h-[44px] bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-700 text-emerald-300 px-3 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
               >
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>{language === 'bn' ? 'পরিচয় যাচাই নিশ্চিত' : 'Confirm Identity'}</span>
+                <span>{language === 'en' ? 'Confirm Identity' : 'পরিচয় নিশ্চিত'}</span>
               </button>
             </div>
           </div>
@@ -448,7 +450,7 @@ export const CaseDetailModal: React.FC<CaseDetailModalProps> = ({
           style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0.75rem)' }}
         >
           <span className="text-xs text-slate-500">
-            {language === 'bn' ? 'শেষ হালনাগাদ:' : 'Last Updated:'} {legalCase.timeAgo}
+            {language === 'bn' ? 'শেষ হালনাগাদ:' : 'Last Updated:'} {translateTimeAgo(legalCase.timeAgo, language)}
           </span>
           <button
             onClick={onClose}

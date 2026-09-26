@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { LegalCase } from '../../types';
+import { LegalCase, Language } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
 import { TriageCard } from './TriageCard';
 import { CaseDetailModal } from './CaseDetailModal';
 import { PatternAlert } from './PatternAlert';
 import { getStoredCases } from '../../utils/storage';
+import { translateCategory, translateAISummary } from '../../utils/translations';
 import { 
   AlertTriangle, 
   Clock, 
@@ -21,10 +22,16 @@ import {
 
 interface TriageDashboardProps {
   onNavigateToIntake?: () => void;
+  language?: Language;
 }
 
-export const TriageDashboard: React.FC<TriageDashboardProps> = ({ onNavigateToIntake }) => {
-  const { language } = useLanguage();
+export const TriageDashboard: React.FC<TriageDashboardProps> = ({ 
+  onNavigateToIntake,
+  language: propLanguage,
+}) => {
+  const { language: ctxLanguage } = useLanguage();
+  const language = propLanguage || ctxLanguage;
+
   const [cases, setCases] = useState<LegalCase[]>([]);
   const [selectedCase, setSelectedCase] = useState<LegalCase | null>(null);
   const [filterType, setFilterType] = useState<'all' | 'urgent' | 'overdue' | 'child_danger' | 'proxy' | 'sensitive'>('all');
@@ -61,12 +68,16 @@ export const TriageDashboard: React.FC<TriageDashboardProps> = ({ onNavigateToIn
       const callerName = c.provenance.callerName.toLowerCase();
       const tracking = c.trackingNumber.toLowerCase();
       const summary = c.aiSummary.toLowerCase();
+      const translatedSummary = translateAISummary(c.aiSummary, language).toLowerCase();
+      const cat = translateCategory(c.category, language).toLowerCase();
       const district = c.district.toLowerCase();
       return (
         subjectName.includes(q) ||
         callerName.includes(q) ||
         tracking.includes(q) ||
         summary.includes(q) ||
+        translatedSummary.includes(q) ||
+        cat.includes(q) ||
         district.includes(q)
       );
     }
@@ -78,21 +89,21 @@ export const TriageDashboard: React.FC<TriageDashboardProps> = ({ onNavigateToIn
     <div className="space-y-6">
       {/* Header Strip: Live counts */}
       <section
-        aria-label="Triage live status"
+        aria-label={language === 'bn' ? 'ট্রায়াজ লাইভ স্ট্যাটাস' : 'Triage live status'}
         className="rounded-3xl bg-linear-to-r from-slate-900 via-slate-800 to-emerald-950 text-white p-5 sm:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-800/80"
       >
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-widest">
               <Building className="w-4 h-4" />
-              <span>{language === 'bn' ? 'জেলা লিগ্যাল এইড অফিসার ট্রায়াজ কনসোল' : 'District Legal Aid Officer (DLAO) Triage'}</span>
+              <span>{language === 'bn' ? 'জেলা লিগ্যাল এইড কর্মকর্তা ট্রায়াজ কনসোল' : 'District Legal Aid Officer (DLAO) Triage'}</span>
             </div>
             <h2 className="text-xl sm:text-2xl font-black text-white mt-1">
               {language === 'bn' ? 'আইনগত সহায়তা আবেদন ব্যাকলগ ও তাৎক্ষণিক মূল্যায়ন' : 'Legal Aid Application Backlog & Instant Triage'}
             </h2>
           </div>
 
-          {/* Prompt specified: "3 New · 2 Urgent · 1 Overdue" */}
+          {/* Live Counts */}
           <div
             className="grid grid-cols-3 gap-1.5 sm:gap-2 bg-slate-950/60 p-2 sm:p-2.5 rounded-xl border border-slate-700/80 shadow-inner w-full md:w-auto text-center"
             role="status"
@@ -140,7 +151,7 @@ export const TriageDashboard: React.FC<TriageDashboardProps> = ({ onNavigateToIn
           {onNavigateToIntake && (
             <button
               onClick={onNavigateToIntake}
-              className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 transition"
+              className="text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 transition cursor-pointer"
             >
               <PlusCircle className="w-3.5 h-3.5" />
               <span>{language === 'bn' ? 'নতুন ইনটেক শুরু' : 'Start Intake'}</span>
@@ -158,11 +169,11 @@ export const TriageDashboard: React.FC<TriageDashboardProps> = ({ onNavigateToIn
         <div
           className="flex items-center gap-1.5 overflow-x-auto pb-1.5 sm:pb-0 no-scrollbar smooth-touch-scroll"
           role="tablist"
-          aria-label="Filter cases"
+          aria-label={language === 'bn' ? 'মামলা ফিল্টার' : 'Filter cases'}
         >
           <button
             onClick={() => setFilterType('all')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap active:scale-95 ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap active:scale-95 cursor-pointer ${
               filterType === 'all'
                 ? 'bg-slate-900 text-white shadow-sm'
                 : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
@@ -173,18 +184,18 @@ export const TriageDashboard: React.FC<TriageDashboardProps> = ({ onNavigateToIn
 
           <button
             onClick={() => setFilterType('urgent')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 active:scale-95 ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 active:scale-95 cursor-pointer ${
               filterType === 'urgent'
                 ? 'bg-red-600 text-white shadow-sm'
                 : 'bg-white text-red-700 border border-red-200 hover:bg-red-50'
             }`}
           >
-            <span>▲ {language === 'bn' ? 'অতি জরুরি' : 'Urgent'} ({urgentCount})</span>
+            <span>▲ {language === 'bn' ? 'জরুরি' : 'Urgent'} ({urgentCount})</span>
           </button>
 
           <button
             onClick={() => setFilterType('overdue')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 active:scale-95 ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 active:scale-95 cursor-pointer ${
               filterType === 'overdue'
                 ? 'bg-amber-500 text-slate-950 shadow-sm'
                 : 'bg-white text-amber-800 border border-amber-200 hover:bg-amber-50'
@@ -195,19 +206,19 @@ export const TriageDashboard: React.FC<TriageDashboardProps> = ({ onNavigateToIn
 
           <button
             onClick={() => setFilterType('child_danger')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 active:scale-95 ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 active:scale-95 cursor-pointer ${
               filterType === 'child_danger'
                 ? 'bg-purple-700 text-white shadow-sm'
                 : 'bg-white text-purple-800 border border-purple-200 hover:bg-purple-50'
             }`}
           >
             <Baby className="w-3.5 h-3.5" />
-            <span>{language === 'bn' ? 'শিশু ঝুঁকিতে' : 'Child Risk'}</span>
+            <span>{language === 'bn' ? 'শিশু ঝুঁকিতে' : 'Child at Risk'}</span>
           </button>
 
           <button
             onClick={() => setFilterType('proxy')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 active:scale-95 ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 active:scale-95 cursor-pointer ${
               filterType === 'proxy'
                 ? 'bg-emerald-700 text-white shadow-sm'
                 : 'bg-white text-emerald-800 border border-emerald-200 hover:bg-emerald-50'
@@ -218,7 +229,7 @@ export const TriageDashboard: React.FC<TriageDashboardProps> = ({ onNavigateToIn
 
           <button
             onClick={() => setFilterType('sensitive')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 active:scale-95 ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-1.5 active:scale-95 cursor-pointer ${
               filterType === 'sensitive'
                 ? 'bg-purple-800 text-white shadow-sm'
                 : 'bg-white text-purple-900 border border-purple-300 hover:bg-purple-50'
@@ -238,13 +249,13 @@ export const TriageDashboard: React.FC<TriageDashboardProps> = ({ onNavigateToIn
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={language === 'bn' ? 'নাম, ট্র্যাকিং বা জেলা খুঁজুন...' : 'Search by name, tracking ID, district...'}
             className="w-full bg-white border border-slate-300 rounded-xl pl-9 pr-3 py-2 text-base sm:text-xs text-slate-800 placeholder-slate-400 focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-            aria-label="Search cases"
+            aria-label={language === 'bn' ? 'মামলা অনুসন্ধান' : 'Search cases'}
           />
         </div>
       </div>
 
       {/* Triage Cards Grid */}
-      <div className="space-y-5" role="feed" aria-label="Triage cases feed">
+      <div className="space-y-5" role="feed" aria-label={language === 'bn' ? 'ট্রায়াজ মামলার তালিকা' : 'Triage cases feed'}>
         {filteredCases.length > 0 ? (
           filteredCases.map((c) => (
             <TriageCard
@@ -270,7 +281,7 @@ export const TriageDashboard: React.FC<TriageDashboardProps> = ({ onNavigateToIn
                 setFilterType('all');
                 setSearchQuery('');
               }}
-              className="text-xs font-bold text-emerald-700 bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-200 hover:bg-emerald-100"
+              className="text-xs font-bold text-emerald-700 bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-200 hover:bg-emerald-100 cursor-pointer"
             >
               {language === 'bn' ? 'ফিল্টার রিসেট করুন' : 'Reset Filters'}
             </button>
